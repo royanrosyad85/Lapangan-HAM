@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
-import { DashboardShell } from '@/components/dashboard-shell';
+import { AppShell } from '@/components/app-shell';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -18,8 +18,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (profile?.role !== 'admin') redirect('/customer');
 
   return (
-    <DashboardShell variant="admin" userName={profile?.name ?? 'Administrator'}>
+    <AppShell role="admin" userName={profile?.name ?? 'Administrator'} userEmail={user.email}>
       {children}
-    </DashboardShell>
+    </AppShell>
   );
 }
