@@ -28,9 +28,9 @@ Final order:
 
 1. Sticky navigation
 2. Split hero
-3. Compact booking proof row
-4. Lapangan visual
-5. Harga
+3. Match Day Bundle promotion
+4. Harga
+5. Lapangan visual
 6. Jadwal five-day availability
 7. Lokasi
 8. FAQ accordion
@@ -48,12 +48,6 @@ The hero contains:
 - One primary `Booking Sekarang` action to `/customer/booking/create`
 - The stadium address
 - One properly sized hero image
-
-The compact proof row contains at most three facts:
-
-- Slot 2 jam
-- DP 30%, minimum Rp500.000
-- Status booking online
 
 The same booking intent uses the same label throughout the page. The closing CTA repeats `Booking Sekarang` after the informational sections, but adjacent sections do not add redundant booking links.
 
@@ -78,6 +72,31 @@ Indonesian and English copy uses plain active language, sentence case, balanced 
 - Hero image uses `next/image`, responsive `sizes`, a reserved aspect ratio, and `preload`
 - Supporting image stays lazy-loaded
 - Images use a subtle inset black outline and no overlays or decorative labels
+
+### Match Day Bundle promotion
+
+- Place one featured promotional module directly between the hero and Harga
+- Present it as one 36px-radius Snow surface, not an ecommerce grid or checkout form
+- Use an asymmetric desktop split: promotional copy and a licensed football image on the left, compact selection and pricing on the right
+- Stack into one column below 768px, with the selected price and CTA immediately following the selector
+- Eyebrow: `PAKET MATCH DAY`
+- Headline: `Match Day Lebih Lengkap, Lebih Hemat`
+- Supporting copy: `Gabungkan perlengkapan pertandingan dan dokumentasi dalam satu booking. Pilih paket yang sesuai dengan kebutuhan tim Anda.`
+- Use `BUNDLES` and `ADD_ON_ITEMS` from `src/config/pricing.ts` as the only pricing source
+- Render a compact semantic button group with `aria-pressed`; do not reproduce checkbox cards or three equal product cards
+- Default to `Complete Match Day`, the only package marked `PALING HEMAT`
+- Show only the selected package's three or four included items
+- Derive original price, savings amount, and savings percentage from config values
+- Keep the selected bundle price visually dominant; the original price is crossed out and secondary
+- Use Ember only for the best-value badge and savings treatment
+- Use tabular numbers for every price and percentage
+- Primary CTA: `Pilih Paket & Booking`
+- CTA format: `/customer/booking/create?bundle={bundle-id}`
+- Omit the secondary `Lihat detail paket` link because the selected details are already visible and another action would compete with booking
+- Use Omar Ramadan's locally stored [soccer game on a stadium](https://unsplash.com/photos/jvBRJWFGbtg) photograph, which is free under the Unsplash License
+- Do not autoplay or rotate packages
+- Selection changes are immediate. Only opacity and transform feedback may transition, for at most 200ms
+- Each selector and CTA has a 44px target, visible focus ring, and `scale(0.96)` pointer-press feedback
 
 ### Harga
 
@@ -130,13 +149,22 @@ Landing-only files:
 - `src/lib/i18n/translations/id.ts`
 - `src/lib/i18n/translations/en.ts`
 - `src/components/HAMMapWrapper.tsx`
+- `public/assets/match-day-bundle.jpg`
 
 Delete these dead testimonial files after removing their only import:
 
 - `src/components/TestimonialsSection.tsx`
 - `src/components/ui/testimonials-columns-1.tsx`
 
-No routes, booking actions, database schema, auth code, customer UI, or admin UI change. Existing unrelated edits in `src/app/layout.tsx` and `skills-lock.json` remain untouched.
+Minimal booking-flow support:
+
+- `src/app/customer/booking/create/page.tsx`
+- `src/app/customer/booking/create/BookingCreateForm.tsx`
+- `src/app/customer/booking/create/BookingCreateForm.test.tsx`
+
+The booking page validates `bundle` against the existing `BundleId` values, resolves its items from `BUNDLES`, and passes those items as the initial add-on selection. Invalid query values are ignored. Submission, pricing resolution, payment handling, and existing date or time query parameters remain unchanged.
+
+No route slug, booking action, database schema, auth code, payment behavior, or admin UI changes. Existing unrelated edits in `src/app/layout.tsx` and `skills-lock.json` remain untouched.
 
 The current single Client Component remains in place because locale context and live schedule state already require it. Splitting it into new wrapper layers would add files without changing the user-facing result.
 
@@ -164,6 +192,10 @@ Browser smoke checks:
 
 - Home renders at desktop and 390px mobile widths
 - `Booking Sekarang` reaches `/customer/booking/create`
+- Changing the Match Day selector updates only the active package details
+- `Pilih Paket & Booking` carries the selected `bundle` query value
+- Valid bundle query values preselect the matching existing add-on bundle
+- Invalid bundle query values leave add-ons unselected
 - Every nav anchor reaches an existing section
 - One available schedule cell preserves `date`, `start`, and `end` query parameters
 - Booked and closed cells cannot be activated
@@ -177,6 +209,9 @@ Browser smoke checks:
 - `design.md` is visibly represented in typography, color, spacing, radii, borders, buttons, tables, navigation, and footer
 - VENUE and testimonials are absent from the DOM and dead files are removed
 - The page is shorter, with one obvious above-the-fold booking path
+- One Match Day promotion appears directly after the hero without duplicating checkout UI
+- Complete Match Day is clearly and quietly marked as the best-value package
+- The selected package reaches the booking form through a validated query parameter
 - Harga, Jadwal, Lokasi, and FAQ remain correct on mobile
 - Schedule failure is not misrepresented as availability
 - The final craft review reports every applied before-and-after polish change
