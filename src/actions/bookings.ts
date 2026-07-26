@@ -562,3 +562,26 @@ function escapeHtml(value: string) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
 }
+
+export type BookedSlot = {
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+};
+
+// Public read of booked slots. Lives server-side so the Supabase client (and its
+// bundled GoTrue admin API) never ships to the browser.
+export async function fetchBookedSlotsAction(
+  pStartDate: string,
+  pEndDate: string,
+): Promise<{ data: BookedSlot[] | null; error: boolean }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('get_booked_slots', {
+    p_start_date: pStartDate,
+    p_end_date: pEndDate,
+  });
+
+  if (error) return { data: null, error: true };
+  return { data: (data ?? []) as BookedSlot[], error: false };
+}
