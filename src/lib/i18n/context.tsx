@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
@@ -70,11 +71,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     [locale],
   );
 
-  const contextValue: I18nContextValue = {
-    locale,
-    setLocale,
-    t,
-  };
+  const contextValue = useMemo<I18nContextValue>(
+    () => ({ locale, setLocale, t }),
+    [locale, setLocale, t],
+  );
 
   return <I18nContext value={contextValue}>{children}</I18nContext>;
 }
