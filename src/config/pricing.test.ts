@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { calculateBookingPrice } from './pricing';
+import { calculateBookingPrice, resolveAddOns } from './pricing';
 
 describe('Pricing Calculator', () => {
   it('calculates weekday morning price correctly', () => {
@@ -48,5 +48,68 @@ describe('calculateBookingPrice operating hours', () => {
     const monday = new Date('2026-07-13'); // Monday
     const result = calculateBookingPrice(monday, 8, 10);
     expect(result.total).toBeGreaterThan(0);
+  });
+});
+
+describe('resolveAddOns', () => {
+  it('returns zero totals for an empty selection', () => {
+    expect(resolveAddOns([])).toEqual({
+      items: [],
+      bundle: null,
+      original: 0,
+      discount: 0,
+      total: 0,
+    });
+  });
+
+  it('charges items individually when no bundle qualifies', () => {
+    const result = resolveAddOns(['rompi']);
+    expect(result).toMatchObject({ items: ['rompi'], bundle: null, original: 40000, discount: 0, total: 40000 });
+  });
+
+  it('applies Match Essentials (wasit + rompi + kiper) and saves 65.000', () => {
+    const result = resolveAddOns(['wasit', 'rompi', 'kiper']);
+    expect(result.bundle).toBe('match_essentials');
+    expect(result.original).toBe(265000);
+    expect(result.total).toBe(200000);
+    expect(result.discount).toBe(65000);
+  });
+
+  it('applies Match Content (wasit + videografer) and saves 150.000', () => {
+    const result = resolveAddOns(['wasit', 'videografer']);
+    expect(result.bundle).toBe('match_content');
+    expect(result.original).toBe(600000);
+    expect(result.total).toBe(450000);
+    expect(result.discount).toBe(150000);
+  });
+
+  it('auto-upgrades to Complete Match Day (best discount) when all items selected', () => {
+    const result = resolveAddOns(['wasit', 'videografer', 'rompi', 'kiper']);
+    expect(result.bundle).toBe('complete_match_day');
+    expect(result.original).toBe(665000);
+    expect(result.total).toBe(475000);
+    expect(result.discount).toBe(190000);
+  });
+
+  it('charges extra items outside the applied bundle individually without stacking', () => {
+    // Match Content (wasit + videografer) + rompi extra
+    const result = resolveAddOns(['wasit', 'videografer', 'rompi']);
+    expect(result.bundle).toBe('match_content');
+    expect(result.total).toBe(490000); // 450000 bundle + 40000 rompi
+    expect(result.original).toBe(640000);
+    expect(result.discount).toBe(150000);
+  });
+
+  it('never stacks: a single best bundle is chosen even when two are eligible', () => {
+    // wasit + videografer + rompi + kiper: match_essentials and complete are both eligible,
+    // complete saves more so it wins alone.
+    const result = resolveAddOns(['kiper', 'videografer', 'wasit', 'rompi']);
+    expect(result.bundle).toBe('complete_match_day');
+    expect(result.discount).toBe(190000);
+  });
+
+  it('dedupes repeated ids', () => {
+    const result = resolveAddOns(['wasit', 'wasit', 'rompi']);
+    expect(result.items).toEqual(['wasit', 'rompi']);
   });
 });
