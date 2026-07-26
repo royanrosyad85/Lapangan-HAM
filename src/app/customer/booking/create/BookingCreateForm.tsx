@@ -50,11 +50,13 @@ export function BookingCreateForm({
   initialDate = '',
   initialStart = 18,
   initialEnd = 20,
+  initialAddOns = [],
 }: {
   fields: FieldOption[];
   initialDate?: string;
   initialStart?: number;
   initialEnd?: number;
+  initialAddOns?: AddOnId[];
 }) {
   const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(
@@ -78,7 +80,7 @@ export function BookingCreateForm({
   const [startHour, setStartHour] = useState(initialStart);
   const [endHour, setEndHour] = useState(initialEnd);
   const [paymentOption, setPaymentOption] = useState<'dp' | 'full'>('dp');
-  const [selectedAddOns, setSelectedAddOns] = useState<AddOnId[]>([]);
+  const [selectedAddOns, setSelectedAddOns] = useState<AddOnId[]>(() => [...initialAddOns]);
 
   const [bookedSlots, setBookedSlots] = useState<{ start_time: string; end_time: string }[]>([]);
 

@@ -60,7 +60,7 @@ export default function RootLayout({
           <I18nProvider>{children}</I18nProvider>
         </ThemeProvider>
       {/* impeccable-live-start */}
-<script src="http://localhost:8400/live.js" async></script>
+<script src="http://localhost:8400/live.js?token=ed0eb114-2962-4555-8413-7b03efb8cd3d" async></script>
 {/* impeccable-live-end */}
 </body>
     </html>

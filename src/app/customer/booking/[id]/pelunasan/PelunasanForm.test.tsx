@@ -21,7 +21,7 @@ vi.mock('@/actions/bookings', () => ({
 describe('PelunasanForm', () => {
   const mockStorage = () => {
     const storage = {
-      getItem: vi.fn(() => null),
+      getItem: vi.fn((key: string) => (key === 'lang' ? 'en' : null)),
       setItem: vi.fn(),
     };
     Object.defineProperty(window, 'localStorage', { value: storage, configurable: true });
