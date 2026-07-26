@@ -11,7 +11,7 @@ export default async function AdminBookingsPage() {
 
   const { data: bookings, error } = await supabase
     .from('bookings')
-    .select('id, booking_date, start_time, end_time, price, dp_amount, status, created_at, fields(name), profiles(name, email, phone), payments(receipt_url, payment_type, status, created_at)')
+    .select('id, booking_date, start_time, end_time, price, dp_amount, status, created_at, addons, fields(name), profiles(name, email, phone), payments(receipt_url, payment_type, status, created_at)')
     .order('created_at', { ascending: false });
 
   const rows = await buildAdminBookingRows(

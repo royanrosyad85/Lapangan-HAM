@@ -169,6 +169,7 @@ function makeBooking(overrides: Partial<AdminBookingFixture> = {}): AdminBooking
     dp_amount: 690000,
     status: 'pending',
     created_at: '2026-06-21T03:04:00.000Z',
+    addons: null,
     fields: { name: 'Field A' },
     profiles: {
       name: 'Alex',
@@ -206,6 +207,7 @@ type AdminBookingFixture = {
   dp_amount: number | string;
   status: string;
   created_at: string;
+  addons: unknown;
   fields: { name: string } | { name: string }[] | null;
   profiles:
     | {

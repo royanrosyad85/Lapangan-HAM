@@ -2,12 +2,20 @@
 
 import { useActionState, useState, useEffect } from 'react';
 import Flatpickr from 'react-flatpickr';
-import { Calendar, Clock, CreditCard, ChevronRight, ChevronLeft, Info } from 'lucide-react';
+import { Calendar, Clock, CreditCard, ChevronRight, ChevronLeft, Info, Package, Check, Sparkles } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 import { createBookingAction } from '@/actions/bookings';
 import { BOOKING_ACTION_INITIAL_STATE } from '@/actions/bookings-utils';
-import { BOOKING_PRICE_SLOTS, calculateBookingPrice } from '@/config/pricing';
+import {
+  BOOKING_PRICE_SLOTS,
+  calculateBookingPrice,
+  grandTotalDp,
+  resolveAddOns,
+  ADD_ON_ITEMS,
+  BUNDLES,
+  type AddOnId,
+} from '@/config/pricing';
 import { useTranslation } from '@/lib/i18n';
 import { BankInfoCard } from '@/components/BankInfoCard';
 import { UploadZone } from '@/components/UploadZone';
@@ -70,6 +78,7 @@ export function BookingCreateForm({
   const [startHour, setStartHour] = useState(initialStart);
   const [endHour, setEndHour] = useState(initialEnd);
   const [paymentOption, setPaymentOption] = useState<'dp' | 'full'>('dp');
+  const [selectedAddOns, setSelectedAddOns] = useState<AddOnId[]>([]);
 
   const [bookedSlots, setBookedSlots] = useState<{ start_time: string; end_time: string }[]>([]);
 
@@ -161,6 +170,22 @@ export function BookingCreateForm({
     ? calculateBookingPrice(selectedDate, startHour, endHour)
     : { total: 0, dp: 0 };
 
+  const addOn = resolveAddOns(selectedAddOns);
+  const grandTotal = price.total + addOn.total;
+  const grandDp = paymentOption === 'full' ? grandTotal : grandTotalDp(grandTotal);
+  const remaining = Math.max(grandTotal - grandDp, 0);
+
+  const toggleAddOn = (id: AddOnId) => {
+    setSelectedAddOns((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const selectBundle = (bundleItems: AddOnId[]) => {
+    setSelectedAddOns((prev) => {
+      const same = bundleItems.length === prev.length && bundleItems.every((id) => prev.includes(id));
+      return same ? [] : [...bundleItems];
+    });
+  };
+
   const startOptions = BOOKING_PRICE_SLOTS.filter((slot) => {
     if (!selectedDate) return true;
     const day = selectedDate.getDay();
@@ -244,6 +269,9 @@ export function BookingCreateForm({
           <input type="hidden" name="fieldId" value={fieldId} />
           <input type="hidden" name="startHour" value={startHour} />
           <input type="hidden" name="endHour" value={endHour} />
+          {selectedAddOns.map((id) => (
+            <input key={id} type="hidden" name="addons" value={id} />
+          ))}
 
           {/* Step 1: Date & Time */}
           {step === 1 && (
@@ -318,20 +346,119 @@ export function BookingCreateForm({
               </div>
             </div>
 
+            {/* Add-ons & bundles */}
+            {price.total > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-[#4d505d] dark:text-slate-300">
+                  <Package size={14} />
+                  <span className="text-[12px] font-medium uppercase tracking-[0.02em]">Tambahan & Paket Bundle</span>
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {ADD_ON_ITEMS.map((item) => {
+                    const checked = selectedAddOns.includes(item.id);
+                    return (
+                      <button
+                        type="button"
+                        key={item.id}
+                        onClick={() => toggleAddOn(item.id)}
+                        className={`flex items-center justify-between rounded-[4px] border px-3.5 py-3 text-left transition duration-150 cursor-pointer ${
+                          checked
+                            ? 'border-[#e4f222] bg-[#e4f222]/10 text-[#0c0a08] dark:text-white'
+                            : 'border-[#d2cecb] dark:border-slate-800 bg-transparent text-[#4d505d] dark:text-slate-300 hover:border-[#999ba3]/40'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <span className={`flex h-4 w-4 items-center justify-center rounded-[3px] border ${checked ? 'border-[#0c0a08] bg-[#e4f222] text-[#0c0a08]' : 'border-[#d2cecb] dark:border-slate-700'}`}>
+                            {checked && <Check size={11} strokeWidth={3} />}
+                          </span>
+                          <span className="text-[14px] font-medium">{item.label}</span>
+                        </span>
+                        <span className="text-[13px] font-semibold tabular-nums">{money.format(item.price)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {BUNDLES.map((bundle) => {
+                    const applied = addOn.bundle === bundle.id;
+                    const normal = bundle.items.reduce(
+                      (sum, id) => sum + (ADD_ON_ITEMS.find((a) => a.id === id)?.price ?? 0),
+                      0,
+                    );
+                    const save = normal - bundle.price;
+                    const pct = Math.round((save / normal) * 100);
+                    return (
+                      <button
+                        type="button"
+                        key={bundle.id}
+                        onClick={() => selectBundle(bundle.items)}
+                        className={`relative mt-2 flex flex-col rounded-[6px] border p-3.5 text-left transition duration-150 cursor-pointer ${
+                          applied
+                            ? 'border-[#e4f222] bg-[#e4f222]/10 ring-1 ring-[#e4f222]'
+                            : 'border-[#d2cecb] dark:border-slate-800 bg-[#f4f2f0] dark:bg-slate-900/40 hover:border-[#999ba3]/50'
+                        }`}
+                      >
+                        {bundle.tag && (
+                          <span className="absolute -top-2 left-3 inline-flex items-center gap-1 rounded-full bg-[#0c0a08] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#e4f222]">
+                            <Sparkles size={10} /> {bundle.tag}
+                          </span>
+                        )}
+                        <span className="text-[13px] font-semibold uppercase tracking-wide text-[#0c0a08] dark:text-white">{bundle.label}</span>
+                        <span className="mt-1 space-y-0.5">
+                          {bundle.items.map((id) => (
+                            <span key={id} className="flex items-center gap-1 text-[11px] text-[#999ba3]">
+                              <Check size={10} className="text-emerald-500" />
+                              {ADD_ON_ITEMS.find((a) => a.id === id)?.label}
+                            </span>
+                          ))}
+                        </span>
+                        <span className="mt-2 flex items-baseline gap-2">
+                          <span className="text-[16px] font-bold text-[#0c0a08] dark:text-white tabular-nums">{money.format(bundle.price)}</span>
+                          <span className="text-[11px] text-[#999ba3] line-through tabular-nums">{money.format(normal)}</span>
+                        </span>
+                        <span className="mt-1 inline-flex w-fit items-center rounded-[3px] bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                          Hemat {money.format(save)} ({pct}%)
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Price preview - Limestone container with Bone border */}
             {price.total > 0 && (
               <div className="space-y-2 rounded-[4px] border border-[#d2cecb] dark:border-slate-800 bg-[#f4f2f0] dark:bg-slate-900/40 p-4">
+                {addOn.items.length > 0 && (
+                  <>
+                    <div className="flex justify-between text-[14px]">
+                      <span className="text-[#999ba3]">Add-on (harga normal)</span>
+                      <span className="text-[#999ba3] tabular-nums">{money.format(addOn.original)}</span>
+                    </div>
+                    <div className="flex justify-between text-[14px]">
+                      <span className="text-emerald-600 dark:text-emerald-400">Diskon Bundle{addOn.bundle ? ` · ${BUNDLES.find((b) => b.id === addOn.bundle)?.label}` : ''}</span>
+                      <span className="font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">-{money.format(addOn.discount)}</span>
+                    </div>
+                    <div className="flex justify-between text-[14px]">
+                      <span className="text-[#999ba3]">Total Add-on</span>
+                      <span className="font-medium text-[#0c0a08] dark:text-white tabular-nums">{money.format(addOn.total)}</span>
+                    </div>
+                    <div className="my-1 border-t border-[#d2cecb]/60 dark:border-slate-800" />
+                  </>
+                )}
                 <div className="flex justify-between text-[14px]">
                   <span className="text-[#999ba3]">{t('booking.totalPrice')}</span>
-                  <span className="font-medium text-[#0c0a08] dark:text-white">{money.format(price.total)}</span>
+                  <span className="font-medium text-[#0c0a08] dark:text-white tabular-nums">{money.format(grandTotal)}</span>
                 </div>
                 <div className="flex justify-between text-[14px]">
                   <span className="text-[#999ba3]">{t('booking.dpAmount')}</span>
-                  <span className="font-semibold text-emerald-500">{money.format(price.dp)}</span>
+                  <span className="font-semibold text-emerald-500 tabular-nums">{money.format(grandDp)}</span>
                 </div>
                 <div className="flex justify-between text-[14px]">
                   <span className="text-[#999ba3]">{t('booking.remaining')}</span>
-                  <span className="font-medium text-[#0c0a08] dark:text-white">{money.format(price.total - price.dp)}</span>
+                  <span className="font-medium text-[#0c0a08] dark:text-white tabular-nums">{money.format(remaining)}</span>
                 </div>
               </div>
             )}
@@ -395,7 +522,7 @@ export function BookingCreateForm({
                       }`}
                     >
                       <p className="text-sm font-semibold">Bayar DP 30%</p>
-                      <p className="mt-1 text-xs">{money.format(price.dp)}</p>
+                      <p className="mt-1 text-xs tabular-nums">{money.format(grandDp)}</p>
                     </button>
                     <button
                       type="button"
@@ -407,7 +534,7 @@ export function BookingCreateForm({
                       }`}
                     >
                       <p className="text-sm font-semibold">Bayar Lunas</p>
-                      <p className="mt-1 text-xs">{money.format(price.total)}</p>
+                      <p className="mt-1 text-xs tabular-nums">{money.format(grandTotal)}</p>
                     </button>
                   </div>
                   <input type="hidden" name="paymentOption" value={paymentOption} />
@@ -434,22 +561,28 @@ export function BookingCreateForm({
 
                 {/* Summary + Submit */}
                 <div className="rounded-[4px] border border-[#d2cecb] dark:border-slate-800 bg-[#f4f2f0] dark:bg-slate-900/40 p-4 space-y-2">
+                  {addOn.items.length > 0 && (
+                    <div className="flex justify-between text-[13px]">
+                      <span className="text-[#999ba3]">Total Add-on ({addOn.bundle ? BUNDLES.find((b) => b.id === addOn.bundle)?.label : 'individu'})</span>
+                      <span className="text-[#999ba3] tabular-nums">{money.format(addOn.total)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-[14px]">
                     <span className="text-[#999ba3]">{t('booking.totalPrice')}</span>
-                    <span className="font-medium text-[#0c0a08] dark:text-white">{money.format(price.total)}</span>
+                    <span className="font-medium text-[#0c0a08] dark:text-white tabular-nums">{money.format(grandTotal)}</span>
                   </div>
                   <div className="flex justify-between text-[14px] items-center">
                     <span className="text-[#999ba3]">
                       {paymentOption === 'full' ? 'Jumlah Pembayaran' : t('booking.dpAmount')}
                     </span>
-                    <span className="font-semibold text-lg text-emerald-500">
-                      {money.format(paymentOption === 'full' ? price.total : price.dp)}
+                    <span className="font-semibold text-lg text-emerald-500 tabular-nums">
+                      {money.format(paymentOption === 'full' ? grandTotal : grandDp)}
                     </span>
                   </div>
                   <div className="flex justify-between text-[14px]">
                     <span className="text-[#999ba3]">{t('booking.remaining') || 'Sisa Pembayaran'}</span>
-                    <span className="font-medium text-[#0c0a08] dark:text-white">
-                      {money.format(paymentOption === 'full' ? 0 : price.total - price.dp)}
+                    <span className="font-medium text-[#0c0a08] dark:text-white tabular-nums">
+                      {money.format(paymentOption === 'full' ? 0 : remaining)}
                     </span>
                   </div>
                 </div>

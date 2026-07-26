@@ -2,21 +2,18 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
+import { ArrowRight, CalendarCheck, CheckCircle2, MapPin, Plus } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from '@/components/ui/chart';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { QuickActions } from '@/components/quick-actions';
+import { RevenueChart } from '@/components/revenue-chart';
+import { DashboardStats } from '@/components/stats';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -71,10 +68,6 @@ type Props = {
 
 const money = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
 
-const chartConfig = {
-  revenue: { label: 'Revenue', color: 'var(--chart-1)' },
-} satisfies ChartConfig;
-
 export function AdminDashboardClient({ fields, bookings, payments }: Props) {
   const { t, locale } = useTranslation();
   const [selectedFieldId, setSelectedFieldId] = useState<string>('all');
@@ -113,7 +106,7 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
     .reduce((sum, p) => sum + Number(p.amount), 0);
 
   const last7Days = buildDailyRevenue(approvedPayments, 7);
-  const last6Months = buildMonthlyRevenue(approvedPayments, 6);
+  const last6Months = buildMonthlyRevenue(approvedPayments, 6, locale === 'id' ? 'id-ID' : 'en-US');
 
   // Chart wants chronological order (oldest -> newest) and a compact day label.
   const dailyChart = [...last7Days]
@@ -138,33 +131,32 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
 
   const kpis = [
     { label: t('admin.fields'), value: activeFieldLabel, caption: t('admin.active') },
-    { label: t('admin.totalBookingCount'), value: String(totalBookingCount), caption: 'All recent bookings' },
-    { label: t('admin.dpRevenue'), value: money.format(dpRevenue), caption: 'Approved payment total' },
-    { label: t('admin.confirmedPaid'), value: String(confirmedCount), caption: 'Ready or completed' },
+    { label: t('admin.totalBookingCount'), value: String(totalBookingCount), caption: t('dashboard.allBookingHistory') },
+    { label: t('admin.dpRevenue'), value: money.format(dpRevenue), caption: t('admin.revenueApprovedDesc') },
+    { label: t('admin.confirmedPaid'), value: String(confirmedCount), caption: t('dashboard.allBookingHistory') },
   ];
 
   return (
-    <div className="space-y-6 lg:space-y-8">
-      {/* Header */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="col-span-full flex flex-col gap-4 pb-1 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{t('admin.dashboardTitle')}</h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-            Keep verification work visible, monitor field availability, and track approved payment revenue.
+          <h1 className="text-balance text-2xl font-semibold tracking-tight">{t('admin.dashboardTitle')}</h1>
+          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+            {t('admin.dashboardDescription')}
           </p>
         </div>
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Select value={selectedFieldId} onValueChange={setSelectedFieldId}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Fields</SelectItem>
-              {fields.map((field) => (
-                <SelectItem key={field.id} value={String(field.id)}>
-                  {field.name}
-                </SelectItem>
-              ))}
+              <SelectGroup>
+                <SelectItem value="all">{t('admin.allFields')}</SelectItem>
+                {fields.map((field) => (
+                  <SelectItem key={field.id} value={String(field.id)}>{field.name}</SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
           <Button asChild variant="outline">
@@ -173,118 +165,68 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
         </div>
       </div>
 
-      {/* Pending verification — focused action banner */}
-      {pendingCount > 0 ? (
-        <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-          <div className="flex items-center gap-3.5">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-lime)] text-xl font-semibold tabular-nums text-[#0c0a08]">
-              {pendingCount}
-            </span>
-            <div>
-              <p className="font-medium">{t('admin.pendingVerification')}</p>
-              <p className="text-sm text-muted-foreground">{t('admin.pendingBannerDesc')}</p>
-            </div>
-          </div>
-          <Button
-            asChild
-            className="shrink-0 bg-[var(--accent-lime)] text-[#0c0a08] hover:bg-[var(--accent-lime)]/90"
-          >
-            <Link href="/admin/bookings">
-              {t('admin.verifyPayments')} <ArrowRight size={16} />
-            </Link>
-          </Button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-3.5 rounded-xl border border-border bg-card p-4 sm:p-5">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
-            <CheckCircle2 size={20} />
-          </span>
+      <DashboardStats stats={kpis.map((kpi) => ({ label: kpi.label, value: kpi.value, hint: kpi.caption }))} />
+
+      <RevenueChart
+        className="md:col-span-2 lg:col-span-4"
+        title={t('admin.last7Days')}
+        description={t('admin.revenueApprovedDesc')}
+        footer={t('admin.revenueFilterHint')}
+        rows={dailyChart}
+        formatValue={(value) => money.format(value)}
+        emptyLabel={t('admin.noRevenueData')}
+        seriesLabel={t('admin.revenueTrend')}
+      />
+
+      <Card className="md:col-span-2 lg:col-span-2">
+        <CardHeader>
+          <CardTitle>{t('admin.operationalSummary')}</CardTitle>
+          <CardDescription>{t('admin.operationalSummaryDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-3">
           <div>
-            <p className="font-medium">{t('admin.allClearTitle')}</p>
-            <p className="text-sm text-muted-foreground">{t('admin.allClearDesc')}</p>
+            <p className="text-xs text-muted-foreground">{t('admin.pendingVerification')}</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums">{pendingCount}</p>
           </div>
-        </div>
-      )}
-
-      {/* KPIs — one panel, divided columns */}
-      <div className="overflow-hidden rounded-xl border border-border bg-card" id="admin-stats">
-        <dl className="grid grid-cols-2 lg:grid-cols-4">
-          {kpis.map((kpi, i) => (
-            <div
-              key={kpi.label}
-              className={cn(
-                'flex flex-col gap-2 p-5',
-                i % 2 !== 0 && 'border-l border-border',
-                i >= 2 && 'border-t border-border',
-                'lg:border-t-0',
-                i === 0 ? 'lg:border-l-0' : 'lg:border-l',
-              )}
-            >
-              <dt className="text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground">{kpi.label}</dt>
-              <dd className="text-2xl font-semibold tracking-tight tabular-nums" suppressHydrationWarning>
-                {kpi.value}
-              </dd>
-              <dd className="text-xs text-muted-foreground">{kpi.caption}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-
-      {/* Revenue trend + summary */}
-      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]" id="admin-trends">
-        <div className="rounded-xl border border-border bg-card">
-          <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
-            <h2 className="text-base font-semibold tracking-tight">{t('admin.last7Days')}</h2>
-            <span className="text-xs font-medium uppercase tracking-[0.04em] text-muted-foreground">
-              {t('admin.revenueTrend')}
-            </span>
+          <div>
+            <p className="text-xs text-muted-foreground">{t('admin.todayRevenue')}</p>
+            <p className="mt-1 text-lg font-semibold tabular-nums" suppressHydrationWarning>{money.format(todayRevenue)}</p>
+            <p className="mt-1 text-xs text-muted-foreground" suppressHydrationWarning>{todayLabel}</p>
           </div>
-          <div className="p-5">
-            {dailyChart.length === 0 ? (
-              <p className="py-16 text-center text-sm text-muted-foreground">No revenue data yet.</p>
-            ) : (
-              <ChartContainer config={chartConfig} className="aspect-auto h-[240px] w-full">
-                <BarChart accessibilityLayer data={dailyChart} margin={{ left: 4, right: 4, top: 8 }}>
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={10} />
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                  <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[6, 6, 0, 0]} maxBarSize={44} />
-                </BarChart>
-              </ChartContainer>
-            )}
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-border bg-card p-5">
-          <p className="text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
-            {t('admin.todayRevenue')}
-          </p>
-          <p className="mt-1.5 text-3xl font-semibold tracking-tight tabular-nums" suppressHydrationWarning>
-            {money.format(todayRevenue)}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground" suppressHydrationWarning>{todayLabel}</p>
-
-          <div className="mt-5 border-t border-border pt-4">
-            <p className="text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
-              {t('admin.thisMonthRevenue')}
-            </p>
-            <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums" suppressHydrationWarning>
-              {money.format(thisMonthRevenue)}
-            </p>
+          <div>
+            <p className="text-xs text-muted-foreground">{t('admin.thisMonthRevenue')}</p>
+            <p className="mt-1 text-lg font-semibold tabular-nums" suppressHydrationWarning>{money.format(thisMonthRevenue)}</p>
             <p className="mt-1 text-xs text-muted-foreground" suppressHydrationWarning>{monthLabel}</p>
           </div>
-        </div>
-      </div>
+        </CardContent>
+        <CardFooter className="border-t">
+          {pendingCount > 0 ? (
+            <Button asChild size="sm">
+              <Link href="/admin/bookings">{t('admin.verifyPayments')} <ArrowRight data-icon="inline-end" /></Link>
+            </Button>
+          ) : (
+            <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><CheckCircle2 /> {t('admin.allClearTitle')}</span>
+          )}
+        </CardFooter>
+      </Card>
 
-      {/* Last 6 months */}
-      <div className="rounded-xl border border-border bg-card">
-        <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
-          <h2 className="text-base font-semibold tracking-tight">{t('admin.last6Months')}</h2>
-          <span className="text-xs font-medium uppercase tracking-[0.04em] text-muted-foreground">
-            {t('admin.revenueTrend')}
-          </span>
-        </div>
-        <div className="px-5 py-2">
+      <QuickActions
+        className="md:col-span-2 lg:col-span-2"
+        title={t('admin.quickActions')}
+        description={t('admin.quickActionsDesc')}
+        actions={[
+          { title: t('admin.verifyPayments'), description: t('admin.pendingBannerDesc'), href: '/admin/bookings', icon: CalendarCheck },
+          { title: t('admin.fields'), description: t('admin.manageFieldsDesc'), href: '/admin/fields', icon: MapPin },
+          { title: t('admin.addFieldAction'), description: t('admin.addFieldDesc'), href: '/admin/fields/create', icon: Plus },
+        ]}
+      />
+
+      <Card className="md:col-span-2 lg:col-span-4">
+        <CardHeader>
+          <CardTitle>{t('admin.last6Months')}</CardTitle>
+          <CardDescription>{t('admin.monthlyReportDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent>
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
@@ -296,7 +238,7 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
               {last6Months.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={2} className="py-10 text-center text-muted-foreground">
-                    No revenue data yet.
+                    {t('admin.noRevenueData')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -311,8 +253,8 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
               )}
             </TableBody>
           </Table>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -338,7 +280,7 @@ function buildDailyRevenue(payments: PaymentRow[], limit: number) {
     .slice(0, limit);
 }
 
-function buildMonthlyRevenue(payments: PaymentRow[], limit: number) {
+function buildMonthlyRevenue(payments: PaymentRow[], limit: number, locale: string) {
   const monthlyMap: Record<string, { label: string; revenue: number }> = {};
 
   payments.forEach((p) => {
@@ -347,7 +289,7 @@ function buildMonthlyRevenue(payments: PaymentRow[], limit: number) {
     const [y, m] = datePart.split('-').map(Number);
     const dateObj = new Date(y, m - 1, 1);
     const key = `${y}-${String(m).padStart(2, '0')}`;
-    const label = dateObj.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const label = dateObj.toLocaleDateString(locale, { month: 'short', year: 'numeric' });
 
     if (!monthlyMap[key]) {
       monthlyMap[key] = { label, revenue: 0 };

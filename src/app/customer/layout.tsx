@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
-import { DashboardShell } from '@/components/dashboard-shell';
+import { AppShell } from '@/components/app-shell';
 
 export default async function CustomerLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -16,8 +16,8 @@ export default async function CustomerLayout({ children }: { children: React.Rea
     .maybeSingle();
 
   return (
-    <DashboardShell variant="customer" userName={profile?.name ?? user.email ?? 'Customer'}>
+    <AppShell role="customer" userName={profile?.name ?? user.email ?? 'Customer'} userEmail={user.email}>
       {children}
-    </DashboardShell>
+    </AppShell>
   );
 }

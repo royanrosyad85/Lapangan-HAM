@@ -4,6 +4,7 @@
 
 # Development & Temp Files
 *.log
+*graphify-out
 .DS_Store
 .agents/
 .claude/
