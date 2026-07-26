@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, ReceiptText, Copy, Phone, Mail } from 'lucide-react';
+import { Calendar, ReceiptText, Copy, Phone, Mail, Package } from 'lucide-react';
 
 import { useTranslation } from '@/lib/i18n';
 import { StatusBadge } from '@/components/StatusBadge';
 import { DataTable } from '@/components/DataTable';
+import { ADD_ON_ITEMS, BUNDLES, type AddOnSnapshot } from '@/config/pricing';
 import { BookingActionForm } from './BookingActionForm';
 import {
   approveDPFormAction,
@@ -49,6 +50,7 @@ type BookingItem = {
   price: number;
   dp_amount: number;
   status: string;
+  addons: AddOnSnapshot | null;
   receiptUrl: string | null;
   receiptUnavailable: boolean;
   created_at_label: string;
@@ -86,6 +88,7 @@ export function AdminBookingsClient({
   const renderDetails = (row: BookingItem) => {
     const unpaidBalance = Math.max(0, row.price - row.dp_amount);
     const isFullyPaid = ['confirmed', 'paid'].includes(row.status);
+    const fieldPrice = Math.max(0, row.price - (row.addons?.total ?? 0));
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
@@ -130,9 +133,43 @@ export function AdminBookingsClient({
             Rincian Pembayaran
           </h4>
           <div className="space-y-1.5 mt-2">
+            {row.addons && row.addons.items.length > 0 && (
+              <>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[var(--text-muted)]">Harga Lapangan:</span>
+                  <span className="text-[var(--text-secondary)] tabular-nums">{money.format(fieldPrice)}</span>
+                </div>
+                <div className="mt-2 space-y-1 border-t border-[var(--border-subtle)]/50 pt-2">
+                  <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                    <Package size={11} /> Tambahan
+                    {row.addons.bundle && (
+                      <span className="text-emerald-500">· {BUNDLES.find((b) => b.id === row.addons!.bundle)?.label}</span>
+                    )}
+                  </div>
+                  {row.addons.items.map((id) => (
+                    <div key={id} className="flex justify-between text-[11px]">
+                      <span className="text-[var(--text-muted)]">{ADD_ON_ITEMS.find((a) => a.id === id)?.label ?? id}</span>
+                      <span className="text-[var(--text-secondary)] tabular-nums">{money.format(ADD_ON_ITEMS.find((a) => a.id === id)?.price ?? 0)}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-[var(--text-muted)]">Harga Normal</span>
+                    <span className="text-[var(--text-muted)] line-through tabular-nums">{money.format(row.addons.original)}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-emerald-500">Diskon</span>
+                    <span className="text-emerald-500 tabular-nums">-{money.format(row.addons.discount)}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px] font-medium">
+                    <span className="text-[var(--text-secondary)]">Total Add-on</span>
+                    <span className="text-[var(--text-primary)] tabular-nums">{money.format(row.addons.total)}</span>
+                  </div>
+                </div>
+              </>
+            )}
             <div className="flex items-center justify-between text-xs">
               <span className="text-[var(--text-muted)]">Harga Total:</span>
-              <span className="font-semibold text-[var(--text-primary)]">{money.format(row.price)}</span>
+              <span className="font-semibold text-[var(--text-primary)] tabular-nums">{money.format(row.price)}</span>
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="text-[var(--text-muted)]">Jumlah DP:</span>

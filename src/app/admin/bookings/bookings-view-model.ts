@@ -1,3 +1,5 @@
+import type { AddOnSnapshot } from '@/config/pricing';
+
 export type AdminBookingsQueryRow = {
   id: number;
   booking_date: string;
@@ -7,6 +9,7 @@ export type AdminBookingsQueryRow = {
   dp_amount: number | string;
   status: string;
   created_at: string;
+  addons: unknown;
   fields: { name: string | null } | { name: string | null }[] | null;
   profiles:
     | {
@@ -42,6 +45,7 @@ export type AdminBookingRow = {
   price: number;
   dp_amount: number;
   status: string;
+  addons: AddOnSnapshot | null;
   receiptUrl: string | null;
   receiptUnavailable: boolean;
   created_at_label: string;
@@ -87,6 +91,7 @@ export async function buildAdminBookingRows(
         price: Number(booking.price),
         dp_amount: Number(booking.dp_amount),
         status: booking.status,
+        addons: normalizeAddOns(booking.addons),
         receiptUrl,
         receiptUnavailable: Boolean(receiptPath) && !receiptUrl,
         created_at_label: formatBookingCreatedLabel(booking.created_at),
@@ -153,4 +158,17 @@ function formatBookingCreatedLabel(value: string) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+function normalizeAddOns(raw: unknown): AddOnSnapshot | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const s = raw as Partial<AddOnSnapshot>;
+  if (!Array.isArray(s.items) || typeof s.total !== 'number') return null;
+  return {
+    items: s.items,
+    bundle: s.bundle ?? null,
+    original: typeof s.original === 'number' ? s.original : 0,
+    discount: typeof s.discount === 'number' ? s.discount : 0,
+    total: s.total,
+  };
 }

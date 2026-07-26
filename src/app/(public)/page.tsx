@@ -9,6 +9,7 @@ import { Sprout, Lightbulb, Users, Clock, ArrowRight, Plus, Minus } from 'lucide
 import { useTranslation } from '@/lib/i18n';
 import { BOOKING_PRICE_SLOTS, calculateBookingPrice } from '@/config/pricing';
 import { createClient } from '@/lib/supabase/client';
+import { TestimonialsSection } from '@/components/TestimonialsSection';
 
 const HAMMapWrapper = dynamic(() => import('@/components/HAMMapWrapper'), {
   ssr: false,
@@ -447,6 +448,9 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      {/* ============ TESTIMONIALS — player stories ============ */}
+      <TestimonialsSection />
 
       {/* ============ PRICING — detailed slot table ============ */}
       <section id="pricing" className="px-6 py-20 lg:py-24" style={{ backgroundColor: LIMESTONE }}>
