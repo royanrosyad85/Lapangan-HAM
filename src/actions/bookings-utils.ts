@@ -1,4 +1,11 @@
-import { calculateBookingPrice } from '@/config/pricing';
+import {
+  calculateBookingPrice,
+  grandTotalDp,
+  isValidAddOnId,
+  resolveAddOns,
+  type AddOnId,
+  type AddOnSnapshot,
+} from '@/config/pricing';
 
 type PaymentType = 'dp' | 'final';
 
@@ -21,6 +28,7 @@ type ParsedCreateBooking = {
   endTime: string;
   total: number;
   dp: number;
+  addons: AddOnSnapshot | null;
   paymentProof: File;
 };
 
@@ -54,13 +62,17 @@ export function parseCreateBookingForm(formData: FormData): ParseResult<ParsedCr
     return { ok: false, error: proof.error };
   }
 
-  const { total, dp: calculatedDp } = calculateBookingPrice(date, startHour, endHour);
-  if (total <= 0) {
+  const { total: fieldTotal } = calculateBookingPrice(date, startHour, endHour);
+  if (fieldTotal <= 0) {
     return { ok: false, error: 'Slot yang dipilih belum tersedia untuk booking online.' };
   }
 
-  // Adjust DP amount depending on payment option choice
-  const dp = paymentOption === 'full' ? total : calculatedDp;
+  // Add-ons: recompute server-side from submitted item ids (never trust client totals).
+  const selectedAddOns = parseAddOnIds(formData);
+  const addOnResult = resolveAddOns(selectedAddOns);
+  const grandTotal = fieldTotal + addOnResult.total;
+  const dp = paymentOption === 'full' ? grandTotal : grandTotalDp(grandTotal);
+  const addons = addOnResult.items.length > 0 ? addOnResult : null;
 
   return {
     ok: true,
@@ -71,11 +83,23 @@ export function parseCreateBookingForm(formData: FormData): ParseResult<ParsedCr
       endHour,
       startTime: formatHour(startHour),
       endTime: formatHour(endHour),
-      total,
+      total: grandTotal,
       dp,
+      addons,
       paymentProof: proof.file,
     },
   };
+}
+
+function parseAddOnIds(formData: FormData): AddOnId[] {
+  const raw = formData.getAll('addons');
+  const ids: AddOnId[] = [];
+  for (const entry of raw) {
+    if (typeof entry === 'string' && isValidAddOnId(entry)) {
+      ids.push(entry);
+    }
+  }
+  return ids;
 }
 
 export function isPastBookingDate(value: string, now = new Date()) {

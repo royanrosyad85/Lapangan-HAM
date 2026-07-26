@@ -55,6 +55,7 @@ export async function createBookingAction(
       end_time: booking.endTime,
       price: booking.total,
       dp_amount: booking.dp,
+      addons: booking.addons,
       status: 'pending',
     })
     .select('id')
