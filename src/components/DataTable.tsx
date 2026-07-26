@@ -84,6 +84,7 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender }: 
         <div className="flex items-center gap-2 text-sm">
           <span className="text-[var(--text-muted)]">{t('common.showEntries')}</span>
           <select
+            aria-label={t('common.showEntries')}
             value={perPage}
             onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}
             className="rounded-[4px] border border-[var(--border-subtle)] bg-[var(--bg-input)] px-2 py-1.5 text-sm text-[var(--text-primary)]"
@@ -115,15 +116,22 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender }: 
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-4 py-3 text-left text-[11px] font-semibold text-[var(--text-muted)] ${col.sortable ? 'cursor-pointer select-none hover:text-[var(--text-primary)]' : ''}`}
-                  onClick={() => col.sortable && handleSort(col.key)}
+                  className="px-4 py-3 text-left text-[11px] font-semibold text-[var(--text-muted)]"
                 >
-                  <div className="flex items-center gap-1">
-                    {col.label}
-                    {col.sortable && sortKey === col.key && (
-                      sortAsc ? <ChevronUp size={12} /> : <ChevronDown size={12} />
-                    )}
-                  </div>
+                  {col.sortable ? (
+                    <button
+                      type="button"
+                      onClick={() => handleSort(col.key)}
+                      className="-mx-2 -my-1 flex cursor-pointer items-center gap-1 px-2 py-1 select-none hover:text-[var(--text-primary)]"
+                    >
+                      {col.label}
+                      {sortKey === col.key && (
+                        sortAsc ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                      )}
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-1">{col.label}</div>
+                  )}
                 </th>
               ))}
             </tr>
@@ -154,6 +162,7 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender }: 
                           <button
                             type="button"
                             onClick={() => toggleRow(rowId)}
+                            aria-label={isExpanded ? 'Hide details' : 'Show details'}
                             className="flex h-6 w-6 items-center justify-center rounded-[4px] text-[var(--text-muted)] hover:bg-[var(--bg-action-hover)] hover:text-[var(--text-primary)] transition cursor-pointer"
                           >
                             {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}

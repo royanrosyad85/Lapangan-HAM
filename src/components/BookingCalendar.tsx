@@ -67,7 +67,9 @@ function getCalendarDays(year: number, month: number) {
 export function BookingCalendar({ bookings, className }: BookingCalendarProps) {
   const { t, locale } = useTranslation();
   const today = new Date();
-  const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [currentDate, setCurrentDate] = useState(
+    () => new Date(today.getFullYear(), today.getMonth(), 1),
+  );
   const [view, setView] = useState<'month' | 'week'>('month');
 
   const year = currentDate.getFullYear();
@@ -146,7 +148,7 @@ export function BookingCalendar({ bookings, className }: BookingCalendarProps) {
 
           return (
             <div
-              key={`${d.dateStr}-${i}`}
+              key={d.dateStr}
               suppressHydrationWarning
               className={cn(
                 'relative flex min-h-11 flex-col items-center justify-start rounded-md p-1.5 text-xs text-muted-foreground hover:bg-muted',
