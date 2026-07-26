@@ -31,18 +31,13 @@ vi.mock('react-flatpickr', () => ({
 
 vi.mock('@/actions/bookings', () => ({
   createBookingAction: vi.fn(),
-}));
-
-vi.mock('@/lib/supabase/client', () => ({
-  createClient: () => ({
-    rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
-  }),
+  fetchBookedSlotsAction: vi.fn().mockResolvedValue({ data: [], error: false }),
 }));
 
 describe('BookingCreateForm', () => {
-  const mockStorage = () => {
-    const storage = {
-      getItem: vi.fn(() => null),
+const mockStorage = (locale = 'en') => {
+  const storage = {
+    getItem: vi.fn((key: string) => (key === 'lang' ? locale : null)),
       setItem: vi.fn(),
     };
     Object.defineProperty(window, 'localStorage', { value: storage, configurable: true });
@@ -63,6 +58,27 @@ describe('BookingCreateForm', () => {
     renderForm();
 
     expect(flatpickrProps[0]?.value).toBe('');
+  });
+
+  it('preselects add-ons supplied by a validated bundle query', () => {
+    useActionStateMock.mockReturnValue([{ ok: false }, vi.fn(), false]);
+    mockStorage();
+
+    const { container } = render(
+      <I18nProvider>
+        <BookingCreateForm
+          fields={[{ id: 1, name: 'Lapangan HAM', address: null }]}
+          initialAddOns={['wasit', 'videografer']}
+        />
+      </I18nProvider>,
+    );
+
+    const selected = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[name="addons"]'),
+      (input) => input.value,
+    );
+
+    expect(selected).toEqual(['wasit', 'videografer']);
   });
 
   it('shows updated upload file formats without pdf claims on the payment step', () => {

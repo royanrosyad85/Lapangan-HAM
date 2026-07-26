@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
@@ -55,8 +56,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   }, [theme]);
 
+  const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme]);
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

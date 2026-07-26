@@ -3,9 +3,8 @@
 import { useActionState, useState, useEffect } from 'react';
 import Flatpickr from 'react-flatpickr';
 import { Calendar, Clock, CreditCard, ChevronRight, ChevronLeft, Info, Package, Check, Sparkles } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
 
-import { createBookingAction } from '@/actions/bookings';
+import { createBookingAction, fetchBookedSlotsAction } from '@/actions/bookings';
 import { BOOKING_ACTION_INITIAL_STATE } from '@/actions/bookings-utils';
 import {
   BOOKING_PRICE_SLOTS,
@@ -50,11 +49,13 @@ export function BookingCreateForm({
   initialDate = '',
   initialStart = 18,
   initialEnd = 20,
+  initialAddOns = [],
 }: {
   fields: FieldOption[];
   initialDate?: string;
   initialStart?: number;
   initialEnd?: number;
+  initialAddOns?: AddOnId[];
 }) {
   const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(
@@ -78,7 +79,7 @@ export function BookingCreateForm({
   const [startHour, setStartHour] = useState(initialStart);
   const [endHour, setEndHour] = useState(initialEnd);
   const [paymentOption, setPaymentOption] = useState<'dp' | 'full'>('dp');
-  const [selectedAddOns, setSelectedAddOns] = useState<AddOnId[]>([]);
+  const [selectedAddOns, setSelectedAddOns] = useState<AddOnId[]>(() => [...initialAddOns]);
 
   const [bookedSlots, setBookedSlots] = useState<{ start_time: string; end_time: string }[]>([]);
 
@@ -89,10 +90,8 @@ export function BookingCreateForm({
       return;
     }
 
-    const supabase = createClient();
     const dateStr = formatLocalDate(date);
-    const { data, error } = await supabase
-      .rpc('get_booked_slots', { p_start_date: dateStr, p_end_date: dateStr });
+    const { data, error } = await fetchBookedSlotsAction(dateStr, dateStr);
 
     const slots = !error && data ? data : [];
     setBookedSlots(slots);
@@ -151,15 +150,12 @@ export function BookingCreateForm({
 
   useEffect(() => {
     if (selectedDate) {
-      const supabase = createClient();
       const dateStr = formatLocalDate(selectedDate);
-      supabase
-        .rpc('get_booked_slots', { p_start_date: dateStr, p_end_date: dateStr })
-        .then(({ data, error }) => {
-          if (!error && data) {
-            setBookedSlots(data);
-          }
-        });
+      fetchBookedSlotsAction(dateStr, dateStr).then(({ data, error }) => {
+        if (!error && data) {
+          setBookedSlots(data);
+        }
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -293,11 +289,12 @@ export function BookingCreateForm({
 
             {/* Date picker */}
             <div>
-              <label className="mb-1.5 block text-[13px] font-medium uppercase tracking-[0.02em] text-[#4d505d] dark:text-slate-300 flex items-center justify-between">
+              <label htmlFor="booking-date-input" className="mb-1.5 block text-[13px] font-medium uppercase tracking-[0.02em] text-[#4d505d] dark:text-slate-300 flex items-center justify-between">
                 <span>{t('booking.bookingDate')}</span>
                 <span className="text-[11px] text-[#999ba3] font-normal lowercase">({t('booking.minToday')})</span>
               </label>
               <Flatpickr
+                id="booking-date-input"
                 value={selectedDate ?? ''}
                 options={{ dateFormat: 'Y-m-d', minDate: 'today', disableMobile: false }}
                 onChange={([date]) => handleDateChange(date ?? null)}
@@ -508,10 +505,10 @@ export function BookingCreateForm({
 
                 {/* Pilih Metode Pembayaran */}
                 <div className="space-y-3">
-                  <label className="block text-[13px] font-medium uppercase tracking-[0.02em] text-[#4d505d] dark:text-slate-300">
+                  <span className="block text-[13px] font-medium uppercase tracking-[0.02em] text-[#4d505d] dark:text-slate-300">
                     Pilih Opsi Pembayaran
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  </span>
+                  <div className="grid grid-cols-2 gap-3" role="group" aria-label="Pilih Opsi Pembayaran">
                     <button
                       type="button"
                       onClick={() => setPaymentOption('dp')}
@@ -553,10 +550,13 @@ export function BookingCreateForm({
 
                 {/* Upload zone */}
                 <div>
-                  <label className="mb-1.5 block text-[13px] font-medium uppercase tracking-[0.02em] text-[#4d505d] dark:text-slate-300">
+                  <label
+                    htmlFor="booking-payment-proof"
+                    className="mb-1.5 block text-[13px] font-medium uppercase tracking-[0.02em] text-[#4d505d] dark:text-slate-300"
+                  >
                     {paymentOption === 'full' ? 'Bukti Pembayaran Lunas' : 'Bukti Pembayaran DP'}
                   </label>
-                  <UploadZone name="paymentProof" required />
+                  <UploadZone id="booking-payment-proof" name="paymentProof" required />
                 </div>
 
                 {/* Summary + Submit */}

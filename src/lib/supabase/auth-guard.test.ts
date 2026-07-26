@@ -25,15 +25,6 @@ afterEach(() => {
 });
 
 describe('Supabase auth guard wiring', () => {
-  it('exports the browser client factory', async () => {
-    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
-
-    const { createClient } = await import('./client');
-
-    expect(createClient).toBeTypeOf('function');
-  });
-
   it('exports the async server client factory', async () => {
     const { createClient } = await import('./server');
 

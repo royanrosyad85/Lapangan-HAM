@@ -21,6 +21,7 @@ export function FieldInfoCard({ fieldName, fieldAddress }: FieldInfoCardProps) {
           src="https://images.unsplash.com/photo-1597783442538-368f06281679?auto=format&fit=crop&w=600&q=80"
           alt="HAM Stadium Field"
           fill
+          sizes="(max-width: 1024px) 100vw, 340px"
           className="object-cover opacity-60"
           unoptimized
         />

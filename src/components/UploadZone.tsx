@@ -7,11 +7,12 @@ import { useTranslation } from '@/lib/i18n';
 
 type UploadZoneProps = {
   name: string;
+  id?: string;
   accept?: string;
   required?: boolean;
 };
 
-export function UploadZone({ name, accept = 'image/jpeg,image/png,image/webp', required }: UploadZoneProps) {
+export function UploadZone({ name, id, accept = 'image/jpeg,image/png,image/webp', required }: UploadZoneProps) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -38,7 +39,15 @@ export function UploadZone({ name, accept = 'image/jpeg,image/png,image/webp', r
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={() => inputRef.current?.click()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          inputRef.current?.click();
+        }
+      }}
       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={onDrop}
@@ -53,6 +62,7 @@ export function UploadZone({ name, accept = 'image/jpeg,image/png,image/webp', r
       <input
         ref={inputRef}
         type="file"
+        id={id}
         name={name}
         accept={accept}
         required={required}

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BUNDLES } from '@/config/pricing';
 import { createClient } from '@/lib/supabase/server';
 import { BookingCreateForm } from './BookingCreateForm';
 
@@ -11,7 +12,7 @@ type FieldRow = {
 export default async function BookingCreatePage({
   searchParams,
 }: {
-  searchParams: Promise<{ date?: string; start?: string; end?: string }>;
+  searchParams: Promise<{ date?: string; start?: string; end?: string; bundle?: string }>;
 }) {
   const supabase = await createClient();
   const { data: fields } = await supabase
@@ -24,6 +25,8 @@ export default async function BookingCreatePage({
   const initialDate = resolvedParams.date || '';
   const initialStart = resolvedParams.start ? Number(resolvedParams.start) : 18;
   const initialEnd = resolvedParams.end ? Number(resolvedParams.end) : 20;
+  const initialAddOns =
+    BUNDLES.find((bundle) => bundle.id === resolvedParams.bundle)?.items ?? [];
 
   return (
     <div className="space-y-8">
@@ -58,6 +61,7 @@ export default async function BookingCreatePage({
         initialDate={initialDate}
         initialStart={initialStart}
         initialEnd={initialEnd}
+        initialAddOns={initialAddOns}
       />
     </div>
   );

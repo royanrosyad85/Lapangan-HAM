@@ -7,7 +7,7 @@ import { HistoryClient } from './HistoryClient';
 describe('HistoryClient', () => {
   const mockStorage = () => {
     const storage = {
-      getItem: () => null,
+      getItem: (key: string) => (key === 'lang' ? 'en' : null),
       setItem: () => undefined,
     };
     Object.defineProperty(window, 'localStorage', { value: storage, configurable: true });

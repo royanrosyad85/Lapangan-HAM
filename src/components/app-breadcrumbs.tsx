@@ -18,7 +18,7 @@ export function AppBreadcrumbs({ items }: { items: (DashboardBreadcrumb & { labe
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           return (
-            <Fragment key={`${item.label}-${index}`}>
+            <Fragment key={item.path ?? item.label}>
               {index > 0 && <BreadcrumbSeparator className="hidden sm:block" />}
               <BreadcrumbItem className={isLast ? '' : 'hidden sm:inline-flex'}>
                 {isLast ? (

@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
@@ -27,10 +28,10 @@ const LOCALE_STORAGE_KEY = 'lang';
 const LOCALE_CHANGE_EVENT = 'locale-change';
 
 function getLocaleSnapshot(): Locale {
-  if (typeof window === 'undefined') return 'en';
+  if (typeof window === 'undefined') return 'id';
   const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
   if (stored === 'en' || stored === 'id') return stored;
-  return 'en';
+  return 'id';
 }
 
 function subscribeToLocale(onStoreChange: () => void) {
@@ -46,7 +47,7 @@ function subscribeToLocale(onStoreChange: () => void) {
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const locale = useSyncExternalStore<Locale>(subscribeToLocale, getLocaleSnapshot, () => 'en');
+  const locale = useSyncExternalStore<Locale>(subscribeToLocale, getLocaleSnapshot, () => 'id');
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -70,11 +71,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     [locale],
   );
 
-  const contextValue: I18nContextValue = {
-    locale,
-    setLocale,
-    t,
-  };
+  const contextValue = useMemo<I18nContextValue>(
+    () => ({ locale, setLocale, t }),
+    [locale, setLocale, t],
+  );
 
   return <I18nContext value={contextValue}>{children}</I18nContext>;
 }
