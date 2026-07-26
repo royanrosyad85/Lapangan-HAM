@@ -106,8 +106,6 @@ export function isValidAddOnId(value: string): value is AddOnId {
   return VALID_ADD_ON_IDS.has(value);
 }
 
-export const EMPTY_ADD_ONS: AddOnSnapshot = { items: [], bundle: null, original: 0, discount: 0, total: 0 };
-
 function dedupeItems(items: AddOnId[]): AddOnId[] {
   const seen = new Set<AddOnId>();
   const out: AddOnId[] = [];
