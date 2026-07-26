@@ -68,6 +68,11 @@ type Props = {
 
 const money = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
 
+function getFieldIdFromPayment(p: PaymentRow): number | null {
+  const booking = Array.isArray(p.bookings) ? p.bookings[0] : p.bookings;
+  return booking?.field_id ?? null;
+}
+
 export function AdminDashboardClient({ fields, bookings, payments }: Props) {
   const { t, locale } = useTranslation();
   const [selectedFieldId, setSelectedFieldId] = useState<string>('all');
@@ -76,11 +81,6 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
     if (selectedFieldId === 'all') return true;
     return String(b.field_id) === selectedFieldId;
   });
-
-  const getFieldIdFromPayment = (p: PaymentRow): number | null => {
-    const booking = Array.isArray(p.bookings) ? p.bookings[0] : p.bookings;
-    return booking?.field_id ?? null;
-  };
 
   const filteredPayments = payments.filter((p) => {
     if (selectedFieldId === 'all') return true;

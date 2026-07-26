@@ -31,12 +31,7 @@ vi.mock('react-flatpickr', () => ({
 
 vi.mock('@/actions/bookings', () => ({
   createBookingAction: vi.fn(),
-}));
-
-vi.mock('@/lib/supabase/client', () => ({
-  createClient: () => ({
-    rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
-  }),
+  fetchBookedSlotsAction: vi.fn().mockResolvedValue({ data: [], error: false }),
 }));
 
 describe('BookingCreateForm', () => {

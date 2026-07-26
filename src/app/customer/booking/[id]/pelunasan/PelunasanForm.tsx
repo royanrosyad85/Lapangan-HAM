@@ -55,10 +55,13 @@ export function PelunasanForm({ bookingId, remainingAmount }: PelunasanFormProps
 
           {/* Upload */}
           <div>
-            <label className="mb-1.5 block text-[13px] font-medium uppercase tracking-[0.02em] text-[#4d505d] dark:text-slate-300">
+            <label
+              htmlFor="pelunasan-payment-proof"
+              className="mb-1.5 block text-[13px] font-medium uppercase tracking-[0.02em] text-[#4d505d] dark:text-slate-300"
+            >
               {t('booking.paymentProof')}
             </label>
-            <UploadZone name="paymentProof" required />
+            <UploadZone id="pelunasan-payment-proof" name="paymentProof" required />
           </div>
 
           {state.error && (

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { DM_Sans } from 'next/font/google';
 import { ArrowRight, Check, MapPin, Minus, Plus, RotateCcw } from 'lucide-react';
 
+import { fetchBookedSlotsAction } from '@/actions/bookings';
 import {
   ADD_ON_ITEMS,
   BOOKING_PRICE_SLOTS,
@@ -17,7 +18,6 @@ import {
   type BundleId,
 } from '@/config/pricing';
 import { useTranslation } from '@/lib/i18n';
-import { createClient } from '@/lib/supabase/client';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -61,6 +61,13 @@ function bundleOriginalPrice(bundle: Bundle) {
     (sum, id) => sum + (ADD_ON_ITEMS.find((item) => item.id === id)?.price ?? 0),
     0,
   );
+}
+
+function isSlotClosed(date: Date, slot: (typeof BOOKING_PRICE_SLOTS)[number]) {
+  const day = date.getDay();
+  if (day >= 1 && day <= 4) return slot.weekdayPrice === null;
+  if (day === 5) return slot.fridayPrice === null;
+  return false;
 }
 
 function MatchDayBundlePromo({
@@ -225,11 +232,10 @@ export default function LandingPage() {
       setScheduleError(false);
 
       try {
-        const supabase = createClient();
-        const { data, error } = await supabase.rpc('get_booked_slots', {
-          p_start_date: toLocalDateString(dates[0]),
-          p_end_date: toLocalDateString(dates[4]),
-        });
+        const { data, error } = await fetchBookedSlotsAction(
+          toLocalDateString(dates[0]),
+          toLocalDateString(dates[4]),
+        );
 
         if (!active) return;
         if (error) {
@@ -262,13 +268,6 @@ export default function LandingPage() {
       const bookingEnd = Number(booking.end_time.split(':')[0]);
       return Math.max(startHour, bookingStart) < Math.min(endHour, bookingEnd);
     });
-
-  const isSlotClosed = (date: Date, slot: (typeof BOOKING_PRICE_SLOTS)[number]) => {
-    const day = date.getDay();
-    if (day >= 1 && day <= 4) return slot.weekdayPrice === null;
-    if (day === 5) return slot.fridayPrice === null;
-    return false;
-  };
 
   const formatGridDate = (date: Date, index: number) => {
     const language = locale === 'id' ? 'id-ID' : 'en-US';

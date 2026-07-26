@@ -95,7 +95,7 @@ export function CustomerRegisterForm() {
         type="submit"
         disabled={isPending}
         id="register-submit"
-        className="w-full rounded-[4px] bg-[#e4f222] px-4 py-3 text-[16px] font-medium text-[#0c0a08] transition-all duration-150 hover:opacity-90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-[4px] bg-[#e4f222] px-4 py-3 text-[16px] font-medium text-[#0c0a08] transition-[opacity,transform] duration-150 hover:opacity-90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isPending ? t('common.loading') : t('auth.registerButton')}
       </button>
