@@ -4,9 +4,13 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { useTranslation } from '@/lib/i18n';
+import { Button } from '@/components/ui/button';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 type BookingCalendarProps = {
   bookings: { booking_date: string; status: string }[];
+  className?: string;
 };
 
 const statusDotColor: Record<string, string> = {
@@ -60,7 +64,7 @@ function getCalendarDays(year: number, month: number) {
   return days;
 }
 
-export function BookingCalendar({ bookings }: BookingCalendarProps) {
+export function BookingCalendar({ bookings, className }: BookingCalendarProps) {
   const { t, locale } = useTranslation();
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
@@ -98,53 +102,37 @@ export function BookingCalendar({ bookings }: BookingCalendarProps) {
   const goToToday = () => setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1));
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5" id="booking-calendar">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <h3 className="text-base font-semibold tracking-tight text-foreground">{t('dashboard.bookingCalendar')}</h3>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setView(view === 'month' ? 'week' : 'month')}
-            className="rounded-[4px] border border-[#d2cecb] dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-medium text-[#4d505d] dark:text-slate-300 transition duration-150 hover:bg-[#f4f2f0] dark:hover:bg-slate-800 active:scale-[0.97]"
-          >
+    <Card className={cn('gap-0', className)} id="booking-calendar">
+      <CardHeader>
+        <CardTitle>{t('dashboard.bookingCalendar')}</CardTitle>
+        <CardAction>
+          <Button type="button" size="sm" variant="outline" onClick={() => setView(view === 'month' ? 'week' : 'month')}>
             {t(`dashboard.${view === 'month' ? 'week' : 'month'}`)}
-          </button>
-        </div>
-      </div>
+          </Button>
+        </CardAction>
+      </CardHeader>
+      <CardContent>
 
       {/* Navigation */}
       <div className="mb-5 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={goToPrevMonth}
-          className="rounded-[4px] border border-[#d2cecb] dark:border-slate-800 p-1.5 text-[#4d505d] dark:text-slate-300 transition hover:bg-[#f4f2f0] dark:hover:bg-slate-800 active:scale-[0.97]"
-        >
-          <ChevronLeft size={16} />
-        </button>
+        <Button type="button" size="icon" variant="outline" onClick={goToPrevMonth} aria-label={t('common.previous')}>
+          <ChevronLeft />
+        </Button>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-[#0c0a08] dark:text-white" suppressHydrationWarning>{monthLabels[month]} {year}</span>
-          <button
-            type="button"
-            onClick={goToToday}
-            className="rounded-[4px] bg-[#e4f222] px-2.5 py-0.5 text-xs font-medium text-[#0c0a08] transition duration-150 hover:opacity-90 active:scale-[0.97]"
-          >
+          <span className="text-sm font-medium" suppressHydrationWarning>{monthLabels[month]} {year}</span>
+          <Button type="button" size="xs" variant="secondary" onClick={goToToday}>
             {t('dashboard.today')}
-          </button>
+          </Button>
         </div>
-        <button
-          type="button"
-          onClick={goToNextMonth}
-          className="rounded-[4px] border border-[#d2cecb] dark:border-slate-800 p-1.5 text-[#4d505d] dark:text-slate-300 transition hover:bg-[#f4f2f0] dark:hover:bg-slate-800 active:scale-[0.97]"
-        >
-          <ChevronRight size={16} />
-        </button>
+        <Button type="button" size="icon" variant="outline" onClick={goToNextMonth} aria-label={t('common.next')}>
+          <ChevronRight />
+        </Button>
       </div>
 
       {/* Day headers */}
       <div className="mb-2 grid grid-cols-7 gap-1">
         {dayLabels.map((day) => (
-          <div key={day} className="py-1 text-center text-xs font-medium uppercase tracking-[0.02em] text-[#999ba3]">
+          <div key={day} className="py-1 text-center text-xs font-medium uppercase tracking-[0.02em] text-muted-foreground">
             {day}
           </div>
         ))}
@@ -160,9 +148,11 @@ export function BookingCalendar({ bookings }: BookingCalendarProps) {
             <div
               key={`${d.dateStr}-${i}`}
               suppressHydrationWarning
-              className={`relative flex min-h-[44px] flex-col items-center justify-start rounded-[4px] p-1.5 text-xs transition ${
-                d.currentMonth ? '' : 'opacity-30'
-              } ${isToday ? 'border border-[#5683d2] bg-[#5683d2]/10 font-semibold text-[#5683d2] dark:text-blue-300' : 'text-[#4d505d] dark:text-slate-300'} hover:bg-[#f4f2f0] dark:hover:bg-slate-800/80`}
+              className={cn(
+                'relative flex min-h-11 flex-col items-center justify-start rounded-md p-1.5 text-xs text-muted-foreground hover:bg-muted',
+                !d.currentMonth && 'opacity-30',
+                isToday && 'bg-primary/10 font-semibold text-primary ring-1 ring-primary/30',
+              )}
             >
               <span>{d.day}</span>
               {statuses.length > 0 && (
@@ -178,20 +168,21 @@ export function BookingCalendar({ bookings }: BookingCalendarProps) {
       </div>
 
       {/* Legend */}
-      <div className="mt-5 flex flex-wrap gap-4 border-t border-[#f4f2f0] dark:border-slate-800/80 pt-4">
+      <div className="mt-5 flex flex-wrap gap-4 border-t pt-4">
         <div className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-amber-400" />
-          <span className="text-[12px] text-[#999ba3]">{t('dashboard.pending')}</span>
+          <span className="text-xs text-muted-foreground">{t('dashboard.pending')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-purple-400" />
-          <span className="text-[12px] text-[#999ba3]">{t('dashboard.dpPaid')}</span>
+          <span className="text-xs text-muted-foreground">{t('dashboard.dpPaid')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          <span className="text-[12px] text-[#999ba3]">{t('dashboard.confirmedDot')}</span>
+          <span className="text-xs text-muted-foreground">{t('dashboard.confirmedDot')}</span>
         </div>
       </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
