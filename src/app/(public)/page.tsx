@@ -344,11 +344,11 @@ export default function LandingPage() {
             className="landing-press flex min-h-11 shrink-0 items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff5a00] focus-visible:ring-offset-2"
           >
             <Image
-              src="/assets/Logo-HAM-fix.png"
+              src="/assets/icon.svg"
               alt="Stadion H. Abdul Malik"
-              width={118}
-              height={42}
-              className="h-10 w-auto object-contain invert"
+              width={60}
+              height={60}
+              className="h-14 w-14 sm:h-[58px] sm:w-[58px] object-contain"
             />
           </Link>
 
@@ -696,7 +696,7 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
             <Image
-              src="/assets/Logo-HAM-fix.png"
+              src="/assets/icon.svg"
               alt=""
               width={38}
               height={38}
