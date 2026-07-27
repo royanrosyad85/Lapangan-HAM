@@ -24,6 +24,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "HAM Stadium Booking",
   description: "Book sports fields at HAM Stadium with online DP and payment flow.",
+  icons: {
+    icon: "/assets/icon.svg",
+    shortcut: "/assets/icon.svg",
+    apple: "/assets/icon.svg",
+  },
 };
 
 export default function RootLayout({
