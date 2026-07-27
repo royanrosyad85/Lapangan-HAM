@@ -34,11 +34,11 @@ export default function CustomerLoginPage() {
         {/* Brand Header */}
         <Link href="/" className="relative z-10 stagger-item hover:opacity-90 transition-opacity">
           <Image
-            src="/assets/Logo-HAM-fix.png"
+            src="/assets/icon.svg"
             alt="HAM Stadium Logo"
-            width={160}
-            height={160}
-            className="shrink-0 object-contain"
+            width={96}
+            height={96}
+            className="shrink-0 object-contain h-24 w-24"
           />
         </Link>
 
