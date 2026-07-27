@@ -41,9 +41,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild size="lg">
               <Link href={home} aria-label="HAM Stadium">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary">
-                  <Image src="/assets/Logo-HAM-fix.png" alt="" width={22} height={22} priority className="size-5 object-contain" />
-                </span>
+                <Image src="/assets/icon.svg" alt="" width={48} height={48} priority className="size-11 shrink-0 object-contain" />
                 <span className="grid flex-1 text-left leading-tight">
                   <span className="truncate text-sm font-semibold">HAM Stadium</span>
                   <span className="truncate text-xs text-muted-foreground">
