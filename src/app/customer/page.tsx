@@ -27,12 +27,12 @@ export default async function CustomerDashboardPage() {
       .limit(5),
     supabase
       .from('bookings')
-      .select('id, booking_date, price, status')
+      .select('id, booking_date, start_time, end_time, price, status, fields(name)')
       .eq('user_id', user!.id),
   ]);
 
   const recentBookings = (bookings ?? []) as BookingRow[];
-  const allBookingsList = (allBookings ?? []) as { id: number; booking_date: string; price: number | string; status: string }[];
+  const allBookingsList = (allBookings ?? []) as BookingRow[];
 
   // Stats
   const total = allBookingsList.length;
@@ -48,6 +48,9 @@ export default async function CustomerDashboardPage() {
   const calendarBookings = allBookingsList.map((b) => ({
     booking_date: b.booking_date,
     status: b.status,
+    fieldName: Array.isArray(b.fields) ? b.fields[0]?.name ?? 'Field' : b.fields?.name ?? 'Field',
+    start_time: b.start_time,
+    end_time: b.end_time,
   }));
 
   return (

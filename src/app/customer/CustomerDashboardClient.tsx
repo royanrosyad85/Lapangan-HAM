@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Calendar, History, ReceiptText } from 'lucide-react';
+import { Calendar, CheckCircle2, Clock3, History, ReceiptText, WalletCards } from 'lucide-react';
 
 import { useTranslation } from '@/lib/i18n';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -9,7 +9,7 @@ import { BookingCalendar } from '@/components/BookingCalendar';
 import { QuickActions } from '@/components/quick-actions';
 import { DashboardStats } from '@/components/stats';
 import { Button } from '@/components/ui/button';
-import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 type Props = {
   userName: string;
@@ -30,7 +30,7 @@ type Props = {
     price: number;
     status: string;
   }[];
-  calendarBookings: { booking_date: string; status: string }[];
+  calendarBookings: { booking_date: string; status: string; fieldName: string; start_time: string; end_time: string }[];
 };
 
 const money = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
@@ -46,10 +46,10 @@ export function CustomerDashboardClient({ userName, stats, recentBookings, calen
   const { t, locale } = useTranslation();
 
   const statItems = [
-    { label: t('dashboard.totalBooking'), value: stats.total },
-    { label: t('dashboard.waiting'), value: stats.waiting },
-    { label: t('dashboard.confirmed'), value: stats.confirmed },
-    { label: t('dashboard.cancelled'), value: stats.cancelled },
+    { label: t('dashboard.totalBooking'), value: stats.total, icon: Calendar },
+    { label: t('dashboard.waiting'), value: stats.waiting, icon: Clock3, tone: 'warning' as const },
+    { label: t('dashboard.confirmed'), value: stats.confirmed, icon: CheckCircle2, tone: 'success' as const },
+    { label: t('dashboard.totalSpending'), value: money.format(stats.totalSpending), icon: WalletCards, tone: 'info' as const },
   ];
 
   return (
@@ -116,21 +116,6 @@ export function CustomerDashboardClient({ userName, stats, recentBookings, calen
       </Card>
 
       <BookingCalendar bookings={calendarBookings} className="md:col-span-2 lg:col-span-2" />
-
-      <Card className="md:col-span-2 lg:col-span-2">
-        <CardHeader>
-          <CardTitle>{t('dashboard.totalSpending')}</CardTitle>
-          <CardDescription>{t('dashboard.fromBookings', { count: stats.successfulCount })}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-3xl font-semibold tracking-tight tabular-nums">{money.format(stats.totalSpending)}</p>
-        </CardContent>
-        <CardFooter className="border-t">
-          <Button asChild size="sm" variant="ghost">
-            <Link href="/customer/history">{t('dashboard.viewHistory')} <ArrowRight data-icon="inline-end" /></Link>
-          </Button>
-        </CardFooter>
-      </Card>
 
       <QuickActions
         className="md:col-span-2 lg:col-span-2"

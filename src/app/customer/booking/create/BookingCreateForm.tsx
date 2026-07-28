@@ -258,7 +258,7 @@ export function BookingCreateForm({
         </span>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px] items-start">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(26rem,30rem)]">
         {/* Main form area */}
         <form action={formAction} className="space-y-6 order-2 lg:order-1">
           <input type="hidden" name="bookingDate" value={bookingDate} />
@@ -607,7 +607,7 @@ export function BookingCreateForm({
       </form>
 
       {/* Sidebar - Desktop only */}
-      <aside className="hidden lg:block w-full lg:max-w-[340px] order-1 lg:order-2">
+      <aside className="order-1 hidden w-full lg:order-2 lg:block lg:max-w-[30rem]">
         <div className="sticky top-20">
           <FieldInfoCard
             fieldName={selectedField?.name ?? 'Lapangan HAM'}

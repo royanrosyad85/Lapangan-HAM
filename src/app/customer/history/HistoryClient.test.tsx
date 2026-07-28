@@ -36,6 +36,6 @@ describe('HistoryClient', () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByText('Waiting Final Verification')).toBeInTheDocument();
+    expect(screen.getAllByText('Waiting Final Verification')).toHaveLength(2);
   });
 });
