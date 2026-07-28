@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Calendar, History } from 'lucide-react';
+import { ArrowRight, Calendar, History, ReceiptText } from 'lucide-react';
 
 import { useTranslation } from '@/lib/i18n';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -102,7 +102,12 @@ export function CustomerDashboardClient({ userName, stats, recentBookings, calen
                       {booking.booking_date} · {booking.start_time.slice(0, 5)}–{booking.end_time.slice(0, 5)} · {money.format(booking.price)}
                     </p>
                   </div>
-                  <StatusBadge status={booking.status} />
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Button asChild size="sm" variant="ghost">
+                      <Link href={`/invoice/${booking.id}`} aria-label={`View invoice for ${booking.fieldName}`}><ReceiptText /></Link>
+                    </Button>
+                    <StatusBadge status={booking.status} />
+                  </div>
                 </li>
               ))}
             </ul>

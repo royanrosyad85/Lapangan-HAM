@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { History } from 'lucide-react';
+import { History, ReceiptText } from 'lucide-react';
 
 import { useTranslation } from '@/lib/i18n';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -67,7 +67,13 @@ export function HistoryClient({ bookings }: { bookings: BookingItem[] }) {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    href={`/invoice/${b.id}`}
+                    className="inline-flex items-center gap-1.5 rounded-[4px] border border-[#d2cecb] px-4 py-2 text-[14px] font-medium transition hover:bg-[#f4f2f0] dark:border-slate-700 dark:hover:bg-slate-800"
+                  >
+                    <ReceiptText size={15} /> Invoice
+                  </Link>
                   {b.status === 'dp_paid' && (
                     <Link
                       href={`/customer/booking/${b.id}/pelunasan`}
@@ -85,4 +91,3 @@ export function HistoryClient({ bookings }: { bookings: BookingItem[] }) {
     </div>
   );
 }
-
