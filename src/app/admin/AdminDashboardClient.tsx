@@ -137,7 +137,7 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       <div className="col-span-full flex flex-col gap-4 pb-1 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-balance text-2xl font-semibold tracking-tight">{t('admin.dashboardTitle')}</h1>
@@ -168,7 +168,7 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
       <DashboardStats stats={kpis.map((kpi) => ({ label: kpi.label, value: kpi.value, hint: kpi.caption }))} />
 
       <RevenueChart
-        className="md:col-span-2 lg:col-span-4"
+        className="md:col-span-2 xl:col-span-4"
         title={t('admin.last7Days')}
         description={t('admin.revenueApprovedDesc')}
         footer={t('admin.revenueFilterHint')}
@@ -178,7 +178,7 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
         seriesLabel={t('admin.revenueTrend')}
       />
 
-      <Card className="md:col-span-2 lg:col-span-2">
+      <Card className="md:col-span-2 xl:col-span-2">
         <CardHeader>
           <CardTitle>{t('admin.operationalSummary')}</CardTitle>
           <CardDescription>{t('admin.operationalSummaryDesc')}</CardDescription>
@@ -211,7 +211,7 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
       </Card>
 
       <QuickActions
-        className="md:col-span-2 lg:col-span-2"
+        className="md:col-span-2 xl:col-span-2"
         title={t('admin.quickActions')}
         description={t('admin.quickActionsDesc')}
         actions={[
@@ -221,7 +221,7 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
         ]}
       />
 
-      <Card className="md:col-span-2 lg:col-span-4">
+      <Card className="md:col-span-2 xl:col-span-4">
         <CardHeader>
           <CardTitle>{t('admin.last6Months')}</CardTitle>
           <CardDescription>{t('admin.monthlyReportDesc')}</CardDescription>

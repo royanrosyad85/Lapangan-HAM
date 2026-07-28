@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Calendar, ReceiptText, Copy, Phone, Mail, Package } from 'lucide-react';
+import Link from 'next/link';
 
 import { useTranslation } from '@/lib/i18n';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -224,6 +225,12 @@ export function AdminBookingsClient({
             )}
           </div>
         </div>
+
+        <div className="md:col-span-3 border-t border-[var(--border-subtle)] pt-4">
+          <Link href={`/invoice/${row.id}`} className="inline-flex items-center gap-1.5 rounded-[4px] border border-[var(--border-subtle)] px-2.5 py-1.5 text-xs font-medium hover:bg-[var(--bg-action-hover)]">
+            <ReceiptText size={13} /> View invoice
+          </Link>
+        </div>
       </div>
     );
   };
@@ -317,11 +324,12 @@ export function AdminBookingsClient({
       sortValue: (row: BookingItem) => row.status,
       render: (row: BookingItem) => <StatusBadge status={row.status} />,
     },
-    {
-      key: 'actions',
+      {
+        key: 'actions',
       label: t('admin.actions'),
-      render: (row: BookingItem) => (
-        <div className="flex flex-wrap gap-1.5">
+        render: (row: BookingItem) => (
+          <div className="flex flex-wrap gap-1.5">
+            <Link href={`/invoice/${row.id}`} className="inline-flex h-7 items-center rounded-[4px] border border-[var(--border-subtle)] px-2.5 text-[0.8rem] font-medium hover:bg-[var(--bg-action-hover)]">Invoice</Link>
           {row.status === 'pending' && (
             <BookingActionForm
               action={approveDPFormAction}
