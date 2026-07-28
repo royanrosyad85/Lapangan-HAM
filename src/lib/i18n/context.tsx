@@ -28,10 +28,10 @@ const LOCALE_STORAGE_KEY = 'lang';
 const LOCALE_CHANGE_EVENT = 'locale-change';
 
 function getLocaleSnapshot(): Locale {
-  if (typeof window === 'undefined') return 'id';
+  if (typeof window === 'undefined') return 'en';
   const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
   if (stored === 'en' || stored === 'id') return stored;
-  return 'id';
+  return 'en';
 }
 
 function subscribeToLocale(onStoreChange: () => void) {
@@ -47,7 +47,7 @@ function subscribeToLocale(onStoreChange: () => void) {
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const locale = useSyncExternalStore<Locale>(subscribeToLocale, getLocaleSnapshot, () => 'id');
+  const locale = useSyncExternalStore<Locale>(subscribeToLocale, getLocaleSnapshot, () => 'en');
 
   useEffect(() => {
     document.documentElement.lang = locale;
