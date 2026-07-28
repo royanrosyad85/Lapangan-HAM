@@ -19,6 +19,12 @@
       "skillPath": "skills/taste-skill/SKILL.md",
       "computedHash": "6d838b246d0e35d0b53f4f23f98ba7a1dd561937e64f7d0c7553b0928e376c3e"
     },
+    "draw-io-diagram-generator": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/draw-io-diagram-generator/SKILL.md",
+      "computedHash": "62482a37dd45bfd414b285c1876e2028c5de62d43bb0af8a35fc488cafdb04b8"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",
@@ -84,6 +90,12 @@
       "sourceType": "github",
       "skillPath": "higgsfield-websites/SKILL.md",
       "computedHash": "454d134a827d697f9b44d375a4f24902773b209ba786c99c7a68e76bd8970a22"
+    },
+    "improve": {
+      "source": "shadcn/improve",
+      "sourceType": "github",
+      "skillPath": "skills/improve/SKILL.md",
+      "computedHash": "39a9358732dcff385e9e4d3e60b4547856f834e54a58b35e455aa9bd49928c13"
     },
     "interface-design": {
       "source": "Dammyjay93/interface-design",

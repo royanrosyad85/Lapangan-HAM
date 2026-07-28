@@ -19,6 +19,7 @@ const eslintConfig = defineConfig([
     ".claude/**",
     ".impeccable/**",
     ".kiro/**",
+    "testsprite_tests/**",
   ]),
 ]);
 
