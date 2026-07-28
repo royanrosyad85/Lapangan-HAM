@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, CalendarCheck, CheckCircle2, MapPin, Plus } from 'lucide-react';
+import { ArrowRight, CalendarCheck, CheckCircle2, CircleDollarSign, MapPin, Plus, ReceiptText } from 'lucide-react';
 
 import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { QuickActions } from '@/components/quick-actions';
 import { RevenueChart } from '@/components/revenue-chart';
 import { DashboardStats } from '@/components/stats';
+import { BookingCalendar } from '@/components/BookingCalendar';
 import {
   Select,
   SelectContent,
@@ -31,6 +32,8 @@ type BookingRow = {
   id: number;
   field_id: number;
   booking_date: string;
+  start_time: string;
+  end_time: string;
   status: string;
   price: number | string;
   fields: { name: string } | { name: string }[] | null;
@@ -123,17 +126,11 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
     year: 'numeric',
   });
 
-  const activeFieldLabel = selectedFieldId === 'all'
-    ? `${fields.filter((f) => f.status === 'active').length}/${fields.length}`
-    : fields.find((f) => String(f.id) === selectedFieldId)?.status === 'active'
-      ? t('admin.active')
-      : t('admin.inactive') || 'Inactive';
-
   const kpis = [
-    { label: t('admin.fields'), value: activeFieldLabel, caption: t('admin.active') },
-    { label: t('admin.totalBookingCount'), value: String(totalBookingCount), caption: t('dashboard.allBookingHistory') },
-    { label: t('admin.dpRevenue'), value: money.format(dpRevenue), caption: t('admin.revenueApprovedDesc') },
-    { label: t('admin.confirmedPaid'), value: String(confirmedCount), caption: t('dashboard.allBookingHistory') },
+    { label: t('admin.totalBookingCount'), value: String(totalBookingCount), caption: t('dashboard.allBookingHistory'), icon: CalendarCheck },
+    { label: t('admin.pendingVerification'), value: String(pendingCount), caption: t('dashboard.needsAction'), icon: ReceiptText, tone: 'warning' as const },
+    { label: t('admin.confirmedPaid'), value: String(confirmedCount), caption: t('dashboard.allBookingHistory'), icon: CheckCircle2, tone: 'success' as const },
+    { label: t('admin.dpRevenue'), value: money.format(dpRevenue), caption: t('admin.revenueApprovedDesc'), icon: CircleDollarSign, tone: 'info' as const },
   ];
 
   return (
@@ -165,18 +162,29 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
         </div>
       </div>
 
-      <DashboardStats stats={kpis.map((kpi) => ({ label: kpi.label, value: kpi.value, hint: kpi.caption }))} />
+      <DashboardStats stats={kpis.map((kpi) => ({ label: kpi.label, value: kpi.value, hint: kpi.caption, icon: kpi.icon, tone: kpi.tone }))} />
 
-      <RevenueChart
-        className="md:col-span-2 xl:col-span-4"
-        title={t('admin.last7Days')}
-        description={t('admin.revenueApprovedDesc')}
-        footer={t('admin.revenueFilterHint')}
-        rows={dailyChart}
-        formatValue={(value) => money.format(value)}
-        emptyLabel={t('admin.noRevenueData')}
-        seriesLabel={t('admin.revenueTrend')}
-      />
+      <div className="col-span-full grid items-start gap-4 xl:grid-cols-2">
+        <BookingCalendar
+          bookings={filteredBookings.map((booking) => ({
+            booking_date: booking.booking_date,
+            status: booking.status,
+            fieldName: Array.isArray(booking.fields) ? booking.fields[0]?.name : booking.fields?.name,
+            start_time: booking.start_time,
+            end_time: booking.end_time,
+          }))}
+        />
+
+        <RevenueChart
+          title={t('admin.last7Days')}
+          description={t('admin.revenueApprovedDesc')}
+          footer={t('admin.revenueFilterHint')}
+          rows={dailyChart}
+          formatValue={(value) => money.format(value)}
+          emptyLabel={t('admin.noRevenueData')}
+          seriesLabel={t('admin.revenueTrend')}
+        />
+      </div>
 
       <Card className="md:col-span-2 xl:col-span-2">
         <CardHeader>

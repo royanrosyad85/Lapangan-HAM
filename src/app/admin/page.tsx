@@ -5,6 +5,8 @@ type BookingRow = {
   id: number;
   field_id: number;
   booking_date: string;
+  start_time: string;
+  end_time: string;
   status: string;
   price: number | string;
   fields: { name: string } | { name: string }[] | null;
@@ -32,7 +34,7 @@ export default async function AdminDashboardPage() {
 
   const [{ data: fieldsData }, { data: bookingsData }, { data: paymentsData }] = await Promise.all([
     supabase.from('fields').select('id, name, price, status').order('name'),
-    supabase.from('bookings').select('id, field_id, booking_date, status, price, fields(name)').order('booking_date', { ascending: false }).limit(200),
+    supabase.from('bookings').select('id, field_id, booking_date, start_time, end_time, status, price, fields(name)').order('booking_date', { ascending: false }).limit(200),
     supabase.from('payments').select('amount, status, created_at, bookings(field_id, fields(name))'),
   ]);
 

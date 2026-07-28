@@ -458,6 +458,7 @@ export function AdminBookingsClient({
           data={filtered}
           keyExtractor={(row) => row.id}
           expandableRender={renderDetails}
+          dateValue={(row) => row.booking_date}
         />
       </div>
 

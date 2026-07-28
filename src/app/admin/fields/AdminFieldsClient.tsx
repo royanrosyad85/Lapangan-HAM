@@ -130,7 +130,7 @@ export function AdminFieldsClient({ fields }: { fields: FieldItem[] }) {
 
       {/* DataTable */}
       <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4">
-        <DataTable columns={columns} data={fields} keyExtractor={(row) => row.id} />
+        <DataTable columns={columns} data={fields} keyExtractor={(row) => row.id} controls={false} />
       </div>
     </div>
   );
