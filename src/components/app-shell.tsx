@@ -16,7 +16,7 @@ export function AppShell({ role, userName, userEmail, children }: AppShellProps)
     <TooltipProvider delayDuration={0}>
       <SidebarProvider>
         <AppSidebar role={role} />
-        <SidebarInset className="min-w-0 border border-border/70">
+        <SidebarInset className="min-w-0 bg-white font-sans dark:bg-background">
           <AppHeader role={role} userName={userName} userEmail={userEmail} />
           <div className="flex flex-1 flex-col p-4 md:p-5">{children}</div>
         </SidebarInset>

@@ -41,24 +41,24 @@ export function NavUser({ name, email, role }: NavUserProps) {
         <span className="hidden max-w-36 truncate text-sm font-medium sm:block">{name}</span>
         <ChevronsUpDown className="hidden text-muted-foreground sm:block" size={14} />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel className="font-normal">
-          <span className="block truncate text-sm font-medium">{name}</span>
-          <span className="block truncate text-xs text-muted-foreground">{email ?? (role === 'admin' ? t('admin.administrator') : t('common.customer'))}</span>
+      <DropdownMenuContent align="end" className="w-72 p-1.5">
+        <DropdownMenuLabel className="px-2.5 py-2 font-normal">
+          <span className="block truncate text-sm font-medium text-foreground">{name}</span>
+          <span className="mt-0.5 block truncate text-xs text-muted-foreground">{email ?? (role === 'admin' ? t('admin.administrator') : t('common.customer'))}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <div className="flex items-center justify-between gap-2 px-2 py-1.5">
-          <span className="text-xs text-muted-foreground">{t('common.theme')}</span>
+        <div className="flex min-h-10 items-center justify-between gap-3 px-2.5">
+          <span className="text-sm text-muted-foreground">{t('common.theme')}</span>
           <ThemeToggle />
         </div>
-        <div className="flex items-center justify-between gap-2 px-2 py-1.5">
-          <span className="text-xs text-muted-foreground">{t('common.language')}</span>
+        <div className="flex min-h-10 items-center justify-between gap-3 px-2.5">
+          <span className="text-sm text-muted-foreground">{t('common.language')}</span>
           <LanguageToggle />
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild variant="destructive">
           <form action="/api/auth/signout" method="post">
-            <button type="submit" className="flex w-full items-center gap-2">
+            <button type="submit" className="flex min-h-10 w-full items-center gap-2">
               <LogOut />
               {t('common.logout')}
             </button>

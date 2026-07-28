@@ -4,6 +4,8 @@ import { useState, useMemo, type ReactNode, Fragment } from 'react';
 import { ChevronDown, ChevronUp, Search, ChevronRight } from 'lucide-react';
 
 import { useTranslation } from '@/lib/i18n';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 type Column<T> = {
   key: string;
@@ -18,9 +20,11 @@ type DataTableProps<T> = {
   data: T[];
   keyExtractor: (row: T) => string | number;
   expandableRender?: (row: T) => ReactNode;
+  controls?: boolean;
+  dateValue?: (row: T) => string;
 };
 
-export function DataTable<T>({ columns, data, keyExtractor, expandableRender }: DataTableProps<T>) {
+export function DataTable<T>({ columns, data, keyExtractor, expandableRender, controls = true, dateValue }: DataTableProps<T>) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [perPage, setPerPage] = useState(10);
@@ -28,6 +32,8 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender }: 
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortAsc, setSortAsc] = useState(true);
   const [expandedRows, setExpandedRows] = useState<Set<string | number>>(new Set());
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   const toggleRow = (id: string | number) => {
     setExpandedRows((prev) => {
@@ -42,15 +48,19 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender }: 
   };
 
   const filteredData = useMemo(() => {
-    if (!search.trim()) return data;
+    const dateFiltered = dateValue ? data.filter((row) => {
+      const date = dateValue(row);
+      return (!fromDate || date >= fromDate) && (!toDate || date <= toDate);
+    }) : data;
+    if (!search.trim()) return dateFiltered;
     const lower = search.toLowerCase();
-    return data.filter((row) =>
+    return dateFiltered.filter((row) =>
       columns.some((col) => {
         const val = col.sortValue?.(row) ?? '';
         return String(val).toLowerCase().includes(lower);
       }),
     );
-  }, [data, search, columns]);
+  }, [data, search, columns, dateValue, fromDate, toDate]);
 
   const sortedData = useMemo(() => {
     if (!sortKey) return filteredData;
@@ -78,16 +88,16 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender }: 
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* Controls */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      {controls ? <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-[var(--text-muted)]">{t('common.showEntries')}</span>
           <select
             aria-label={t('common.showEntries')}
             value={perPage}
             onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}
-            className="rounded-[4px] border border-[var(--border-subtle)] bg-[var(--bg-input)] px-2 py-1.5 text-sm text-[var(--text-primary)]"
+            className="h-8 rounded-lg border border-input bg-background px-2 text-sm"
           >
             {[5, 10, 25, 50].map((n) => (
               <option key={n} value={n}>{n}</option>
@@ -95,17 +105,23 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender }: 
           </select>
           <span className="text-[var(--text-muted)]">{t('common.entries')}</span>
         </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          {dateValue ? <>
+            <Input type="date" aria-label="From date" value={fromDate} onChange={(e) => { setFromDate(e.target.value); setPage(1); }} className="w-full sm:w-36" />
+            <Input type="date" aria-label="To date" value={toDate} onChange={(e) => { setToDate(e.target.value); setPage(1); }} className="w-full sm:w-36" />
+          </> : null}
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-          <input
+          <Input
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder={t('common.search')}
-            className="w-full rounded-[4px] border border-[var(--border-subtle)] bg-[var(--bg-input)] py-2 pl-9 pr-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] sm:w-72"
+            className="w-full pl-9 sm:w-72"
           />
         </div>
-      </div>
+        </div>
+      </div> : null}
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)]">
@@ -199,22 +215,24 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender }: 
           {Math.min(currentPage * perPage, sortedData.length)} {t('common.of')} {sortedData.length}
         </span>
         <div className="flex gap-1">
-          <button
+          <Button
             type="button"
+            size="sm"
+            variant="outline"
             disabled={currentPage <= 1}
             onClick={() => setPage(currentPage - 1)}
-            className="rounded-[4px] border border-[var(--border-subtle)] px-3 py-1.5 font-medium transition hover:bg-[var(--bg-action-hover)] disabled:cursor-not-allowed disabled:opacity-30"
           >
             {t('common.previous')}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            size="sm"
+            variant="outline"
             disabled={currentPage >= totalPages}
             onClick={() => setPage(currentPage + 1)}
-            className="rounded-[4px] border border-[var(--border-subtle)] px-3 py-1.5 font-medium transition hover:bg-[var(--bg-action-hover)] disabled:cursor-not-allowed disabled:opacity-30"
           >
             {t('common.next')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

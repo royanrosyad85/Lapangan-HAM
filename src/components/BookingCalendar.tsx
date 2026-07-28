@@ -5,186 +5,74 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-type BookingCalendarProps = {
-  bookings: { booking_date: string; status: string }[];
-  className?: string;
+type Booking = { booking_date: string; status: string; fieldName?: string; start_time?: string; end_time?: string };
+type BookingCalendarProps = { bookings: Booking[]; className?: string; variant?: 'full' | 'compact' };
+
+const dotColor: Record<string, string> = {
+  pending: 'bg-amber-500', dp_paid: 'bg-amber-500', payment_2_pending: 'bg-amber-500',
+  paid: 'bg-emerald-500', confirmed: 'bg-emerald-500', cancelled: 'bg-destructive',
 };
 
-const statusDotColor: Record<string, string> = {
-  pending: 'bg-amber-400',
-  dp_paid: 'bg-purple-400',
-  payment_2_pending: 'bg-purple-400',
-  paid: 'bg-emerald-400',
-  confirmed: 'bg-emerald-400',
-  cancelled: 'bg-red-400',
-};
-
-const DAYS_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-const DAYS_ID = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];
-const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const MONTHS_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-
-function getCalendarDays(year: number, month: number) {
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-  const days: { day: number; currentMonth: boolean; dateStr: string }[] = [];
-
-  // Previous month trailing days
-  for (let i = firstDay - 1; i >= 0; i--) {
-    const d = daysInPrevMonth - i;
-    const m = month === 0 ? 12 : month;
-    const y = month === 0 ? year - 1 : year;
-    days.push({ day: d, currentMonth: false, dateStr: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}` });
-  }
-
-  // Current month days
-  for (let d = 1; d <= daysInMonth; d++) {
-    days.push({
-      day: d,
-      currentMonth: true,
-      dateStr: `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
-    });
-  }
-
-  // Fill to complete last row
-  const remaining = 7 - (days.length % 7);
-  if (remaining < 7) {
-    const nextMonth = month + 2 > 12 ? 1 : month + 2;
-    const nextYear = month + 2 > 12 ? year + 1 : year;
-    for (let d = 1; d <= remaining; d++) {
-      days.push({ day: d, currentMonth: false, dateStr: `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}` });
-    }
-  }
-
-  return days;
+function monthDays(date: Date) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const first = new Date(year, month, 1).getDay();
+  const count = new Date(year, month + 1, 0).getDate();
+  return Array.from({ length: first + count }, (_, index) => {
+    const day = index - first + 1;
+    return day > 0 ? { day, date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}` } : null;
+  });
 }
 
-export function BookingCalendar({ bookings, className }: BookingCalendarProps) {
+export function BookingCalendar({ bookings, className, variant = 'compact' }: BookingCalendarProps) {
   const { t, locale } = useTranslation();
   const today = new Date();
-  const [currentDate, setCurrentDate] = useState(
-    () => new Date(today.getFullYear(), today.getMonth(), 1),
-  );
-  const [view, setView] = useState<'month' | 'week'>('month');
-
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  const dayLabels = locale === 'id' ? DAYS_ID : DAYS_EN;
-  const monthLabels = locale === 'id' ? MONTHS_ID : MONTHS_EN;
-
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-  // Build booking map: dateStr → status[]
-  const bookingMap = new Map<string, string[]>();
-  bookings.forEach((b) => {
-    const existing = bookingMap.get(b.booking_date) ?? [];
-    existing.push(b.status);
-    bookingMap.set(b.booking_date, existing);
-  });
-
-  const allDays = getCalendarDays(year, month);
-
-  // For week view: only show the week containing today
-  const weekDays = view === 'week'
-    ? (() => {
-        const todayIdx = allDays.findIndex((d) => d.dateStr === todayStr);
-        const idx = todayIdx >= 0 ? todayIdx : allDays.findIndex((d) => d.currentMonth);
-        const startOfWeek = idx - (idx % 7);
-        return allDays.slice(startOfWeek, startOfWeek + 7);
-      })()
-    : allDays;
-
-  const goToPrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
-  const goToNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
-  const goToToday = () => setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [currentDate, setCurrentDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
+  const todayKey = today.toISOString().slice(0, 10);
+  const [selectedDate, setSelectedDate] = useState(() => bookings.some((booking) => booking.booking_date === todayKey) ? todayKey : bookings[0]?.booking_date ?? todayKey);
+  const map = new Map<string, Booking[]>();
+  bookings.forEach((booking) => map.set(booking.booking_date, [...(map.get(booking.booking_date) ?? []), booking]));
+  const month = currentDate.toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', { month: 'long', year: 'numeric' });
+  const dayLabels = locale === 'id' ? ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'] : ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  const isFull = variant === 'full';
+  const selected = map.get(selectedDate) ?? [];
+  const changeMonth = (offset: number) => setCurrentDate((value) => new Date(value.getFullYear(), value.getMonth() + offset, 1));
 
   return (
-    <Card className={cn('gap-0', className)} id="booking-calendar">
-      <CardHeader>
-        <CardTitle>{t('dashboard.bookingCalendar')}</CardTitle>
-        <CardAction>
-          <Button type="button" size="sm" variant="outline" onClick={() => setView(view === 'month' ? 'week' : 'month')}>
-            {t(`dashboard.${view === 'month' ? 'week' : 'month'}`)}
-          </Button>
-        </CardAction>
-      </CardHeader>
-      <CardContent>
-
-      {/* Navigation */}
-      <div className="mb-5 flex items-center justify-between">
-        <Button type="button" size="icon" variant="outline" onClick={goToPrevMonth} aria-label={t('common.previous')}>
-          <ChevronLeft />
-        </Button>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium" suppressHydrationWarning>{monthLabels[month]} {year}</span>
-          <Button type="button" size="xs" variant="secondary" onClick={goToToday}>
-            {t('dashboard.today')}
-          </Button>
-        </div>
-        <Button type="button" size="icon" variant="outline" onClick={goToNextMonth} aria-label={t('common.next')}>
-          <ChevronRight />
-        </Button>
-      </div>
-
-      {/* Day headers */}
-      <div className="mb-2 grid grid-cols-7 gap-1">
-        {dayLabels.map((day) => (
-          <div key={day} className="py-1 text-center text-xs font-medium uppercase tracking-[0.02em] text-muted-foreground">
-            {day}
+    <TooltipProvider>
+      <Card className={cn('gap-0', className)} id="booking-calendar">
+        <CardHeader className={cn(isFull && 'border-b pb-4')}>
+          <CardTitle>{isFull ? t('dashboard.bookingCalendar') : month}</CardTitle>
+          <div className="flex items-center gap-1">
+            <Button type="button" size="icon-xs" variant="ghost" onClick={() => changeMonth(-1)} aria-label={t('common.previous')}><ChevronLeft /></Button>
+            {isFull ? <Button type="button" size="sm" variant="outline" onClick={() => setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1))}>{t('dashboard.today')}</Button> : null}
+            <Button type="button" size="icon-xs" variant="ghost" onClick={() => changeMonth(1)} aria-label={t('common.next')}><ChevronRight /></Button>
           </div>
-        ))}
-      </div>
-
-      {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-1">
-        {weekDays.map((d, i) => {
-          const isToday = d.dateStr === todayStr;
-          const statuses = bookingMap.get(d.dateStr) ?? [];
-
-          return (
-            <div
-              key={d.dateStr}
-              suppressHydrationWarning
-              className={cn(
-                'relative flex min-h-11 flex-col items-center justify-start rounded-md p-1.5 text-xs text-muted-foreground hover:bg-muted',
-                !d.currentMonth && 'opacity-30',
-                isToday && 'bg-primary/10 font-semibold text-primary ring-1 ring-primary/30',
-              )}
-            >
-              <span>{d.day}</span>
-              {statuses.length > 0 && (
-                <div className="mt-1 flex gap-0.5">
-                  {statuses.slice(0, 3).map((s, si) => (
-                    <span key={si} className={`h-1.5 w-1.5 rounded-full ${statusDotColor[s] ?? 'bg-gray-400'}`} />
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Legend */}
-      <div className="mt-5 flex flex-wrap gap-4 border-t pt-4">
-        <div className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-amber-400" />
-          <span className="text-xs text-muted-foreground">{t('dashboard.pending')}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-purple-400" />
-          <span className="text-xs text-muted-foreground">{t('dashboard.dpPaid')}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          <span className="text-xs text-muted-foreground">{t('dashboard.confirmedDot')}</span>
-        </div>
-      </div>
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent className={cn('pt-4', isFull && 'p-0')}>
+          {isFull ? <div className="px-4 pt-4 text-xl font-medium tracking-tight">{month}</div> : null}
+          <div className={cn('mt-4 grid grid-cols-7', isFull && 'mt-4 border-t border-border')}>
+            {dayLabels.map((label) => <div key={label} className={cn('py-2 text-center text-[10px] font-medium tracking-widest text-muted-foreground', isFull && 'border-r border-border last:border-r-0')}>{label}</div>)}
+            {monthDays(currentDate).map((item, index) => {
+              if (!item) return <div key={`empty-${index}`} className={cn('min-h-12', isFull && 'min-h-35 border-r border-t border-border last:border-r-0')} />;
+              const dayBookings = map.get(item.date) ?? [];
+              const selectedDay = item.date === selectedDate;
+              const isToday = item.date === todayKey;
+              const label = dayBookings.map((booking) => `${booking.fieldName ?? t('dashboard.bookingCalendar')} ${booking.start_time?.slice(0, 5) ?? ''}–${booking.end_time?.slice(0, 5) ?? ''}`).join('\n');
+              const day = <button type="button" onClick={() => setSelectedDate(item.date)} className={cn('flex w-full flex-col items-center p-2 text-xs transition-colors hover:bg-muted', isFull ? 'min-h-35 items-start' : 'min-h-12', selectedDay && 'bg-muted', isToday && 'font-semibold')}>
+                <span className={cn('grid size-6 place-items-center rounded-full', isToday && 'bg-primary text-primary-foreground')}>{item.day}</span>
+                {isFull ? <div className="mt-2 flex w-full flex-col gap-1">{dayBookings.slice(0, 3).map((booking, bookingIndex) => <span key={bookingIndex} className="truncate rounded-sm border border-current/20 bg-muted px-1.5 py-0.5 text-left text-[10px] text-muted-foreground">{booking.fieldName ?? t(`status.${booking.status}`)} · {booking.start_time?.slice(0, 5)}</span>)}</div> : <div className="mt-1 flex gap-0.5">{dayBookings.slice(0, 3).map((booking, bookingIndex) => <span key={bookingIndex} className={cn('size-1 rounded-full', dotColor[booking.status] ?? 'bg-muted-foreground')} />)}</div>}
+              </button>;
+              return <Tooltip key={item.date}><TooltipTrigger asChild>{day}</TooltipTrigger>{dayBookings.length ? <TooltipContent className="whitespace-pre-line">{label}</TooltipContent> : null}</Tooltip>;
+            })}
+          </div>
+          {!isFull ? <div className="mt-4 border-t pt-4"><p className="text-[10px] font-medium tracking-[0.3em] text-muted-foreground">{new Date(`${selectedDate}T00:00:00`).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase()}</p><div className="mt-3 flex flex-col gap-2">{selected.length ? selected.map((booking, index) => <div key={index} className="flex items-center gap-2 text-sm"><span className={cn('size-1.5 rounded-full', dotColor[booking.status] ?? 'bg-muted-foreground')} /><span className="tabular-nums text-muted-foreground">{booking.start_time?.slice(0, 5)}</span><span className="truncate">{booking.fieldName ?? t(`status.${booking.status}`)}</span></div>) : <p className="text-sm text-muted-foreground">{t('dashboard.noBookings')}</p>}</div></div> : null}
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 }

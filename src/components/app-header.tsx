@@ -28,7 +28,7 @@ export function AppHeader({ role, userName, userEmail }: AppHeaderProps) {
   const activityHref = role === 'admin' ? '/admin/bookings' : '/customer/history';
 
   return (
-    <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b bg-background/95 px-4 backdrop-blur md:px-5">
+    <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b bg-white/95 px-4 backdrop-blur dark:bg-background/95 md:px-5">
       <div className="flex min-w-0 items-center gap-2">
         <CustomSidebarTrigger />
         <Separator orientation="vertical" className="h-4" />

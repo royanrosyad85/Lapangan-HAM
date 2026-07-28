@@ -15,8 +15,7 @@ export function FieldInfoCard({ fieldName, fieldAddress }: FieldInfoCardProps) {
 
   return (
     <div className="space-y-5 rounded-[12px] border border-[#d2cecb] dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6">
-      {/* Field image container - desaturated premium dawn stadium view */}
-      <div className="relative overflow-hidden h-36 rounded-[12px] flex items-center justify-center bg-slate-900 border border-[#d2cecb]/10 dark:border-slate-800">
+      <div className="relative h-36 overflow-hidden rounded-[12px] border border-[#d2cecb]/10 bg-slate-900 dark:border-slate-800">
         <Image
           src="https://images.unsplash.com/photo-1597783442538-368f06281679?auto=format&fit=crop&w=600&q=80"
           alt="HAM Stadium Field"
@@ -25,8 +24,6 @@ export function FieldInfoCard({ fieldName, fieldAddress }: FieldInfoCardProps) {
           className="object-cover opacity-60"
           unoptimized
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a08] via-transparent to-transparent" />
-        <span className="relative z-10 text-[13px] font-medium uppercase tracking-[0.05em] text-white/90">HAM Pitch</span>
       </div>
 
       <div>
