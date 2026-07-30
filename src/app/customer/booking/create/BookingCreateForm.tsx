@@ -232,9 +232,9 @@ export function BookingCreateForm({
   const showSuccessPanel = successBookingId !== null;
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       {/* Step indicator - desaturated modular tabs */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <div className="flex items-center gap-3 rounded-xl border border-[#d2cecb] bg-white p-2.5 dark:border-slate-800 dark:bg-slate-900/60">
         <div className={`flex h-8 w-8 items-center justify-center rounded-[4px] border text-xs font-medium ${
           step > 1
             ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-500'
@@ -242,7 +242,7 @@ export function BookingCreateForm({
         }`}>
           {step > 1 ? '✓' : '1'}
         </div>
-        <span className={`text-[14px] font-medium uppercase tracking-[0.02em] ${step === 1 ? 'text-[#0c0a08] dark:text-white' : 'text-[#999ba3]'}`}>
+        <span className={`text-sm font-semibold ${step === 1 ? 'text-[#0c0a08] dark:text-white' : 'text-[#999ba3]'}`}>
           {t('booking.step1Title')}
         </span>
         <ChevronRight size={14} className="text-[#999ba3]" />
@@ -253,7 +253,7 @@ export function BookingCreateForm({
         }`}>
           2
         </div>
-        <span className={`text-[14px] font-medium uppercase tracking-[0.02em] ${step === 2 ? 'text-[#0c0a08] dark:text-white' : 'text-[#999ba3]'}`}>
+        <span className={`text-sm font-semibold ${step === 2 ? 'text-[#0c0a08] dark:text-white' : 'text-[#999ba3]'}`}>
           {t('booking.step2Title')}
         </span>
       </div>
@@ -280,7 +280,7 @@ export function BookingCreateForm({
                 />
               </div>
 
-              <div className="space-y-6 rounded-[12px] border border-[#d2cecb] dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6">
+               <div className="space-y-7 rounded-2xl border border-[#d2cecb] bg-white p-5 shadow-[0_16px_35px_-30px_rgba(12,10,8,0.45)] dark:border-slate-800 dark:bg-slate-900/60 sm:p-6">
             <div className="flex items-center gap-2 text-[#999ba3]">
               <Calendar size={15} />
               <span className="text-[12px] font-medium uppercase tracking-[0.02em]">{t('booking.step')} 1: {t('booking.step1Title')}</span>
@@ -304,7 +304,7 @@ export function BookingCreateForm({
             </div>
 
             {/* Time selectors */}
-            <div className="grid gap-4 sm:grid-cols-2">
+               <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label htmlFor="start-time" className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium uppercase tracking-[0.02em] text-[#4d505d] dark:text-slate-300">
                   <Clock size={13} />
@@ -318,7 +318,7 @@ export function BookingCreateForm({
                     setStartHour(nextStart);
                     setEndHour(nextStart + 2);
                   }}
-                  className="w-full rounded-[4px] border border-[#d2cecb] dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-[15px] text-[#0c0a08] dark:text-white transition focus:border-slate-600 focus:ring-0"
+                   className="w-full rounded-lg border border-[#d2cecb] bg-white px-4 py-3 text-[15px] text-[#0c0a08] transition-colors duration-150 focus:border-[#0c0a08] focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                 >
                   {startOptions.map((hour) => (
                     <option key={hour} value={hour}>{formatHour(hour)}</option>
@@ -334,7 +334,7 @@ export function BookingCreateForm({
                   id="end-time"
                   value={endHour}
                   onChange={(e) => setEndHour(Number(e.target.value))}
-                  className="w-full rounded-[4px] border border-[#d2cecb] dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-[15px] text-[#0c0a08] dark:text-white transition focus:border-slate-600 focus:ring-0"
+                   className="w-full rounded-lg border border-[#d2cecb] bg-white px-4 py-3 text-[15px] text-[#0c0a08] transition-colors duration-150 focus:border-[#0c0a08] focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                 >
                   {endOptions.map((hour) => (
                     <option key={hour} value={hour}>{formatHour(hour)}</option>
@@ -359,7 +359,7 @@ export function BookingCreateForm({
                         type="button"
                         key={item.id}
                         onClick={() => toggleAddOn(item.id)}
-                        className={`flex items-center justify-between rounded-[4px] border px-3.5 py-3 text-left transition duration-150 cursor-pointer ${
+                           className={`flex min-h-12 items-center justify-between rounded-lg border px-3.5 py-3 text-left transition-[border-color,background-color,transform] duration-150 active:scale-[0.96] ${
                           checked
                             ? 'border-[#e4f222] bg-[#e4f222]/10 text-[#0c0a08] dark:text-white'
                             : 'border-[#d2cecb] dark:border-slate-800 bg-transparent text-[#4d505d] dark:text-slate-300 hover:border-[#999ba3]/40'
@@ -391,7 +391,7 @@ export function BookingCreateForm({
                         type="button"
                         key={bundle.id}
                         onClick={() => selectBundle(bundle.items)}
-                        className={`relative mt-2 flex flex-col rounded-[6px] border p-3.5 text-left transition duration-150 cursor-pointer ${
+                           className={`relative mt-2 flex min-h-44 flex-col rounded-xl border p-4 text-left transition-[border-color,background-color,transform] duration-150 active:scale-[0.96] ${
                           applied
                             ? 'border-[#e4f222] bg-[#e4f222]/10 ring-1 ring-[#e4f222]'
                             : 'border-[#d2cecb] dark:border-slate-800 bg-[#f4f2f0] dark:bg-slate-900/40 hover:border-[#999ba3]/50'
@@ -427,7 +427,7 @@ export function BookingCreateForm({
 
             {/* Price preview - Limestone container with Bone border */}
             {price.total > 0 && (
-              <div className="space-y-2 rounded-[4px] border border-[#d2cecb] dark:border-slate-800 bg-[#f4f2f0] dark:bg-slate-900/40 p-4">
+               <div className="space-y-2 rounded-xl border border-[#d2cecb] bg-[#f4f2f0] p-4 dark:border-slate-800 dark:bg-slate-900/40">
                 {addOn.items.length > 0 && (
                   <>
                     <div className="flex justify-between text-[14px]">
@@ -465,7 +465,7 @@ export function BookingCreateForm({
               type="button"
               disabled={!canProceedToStep2}
               onClick={() => setStep(2)}
-              className="w-full rounded-[4px] bg-[#e4f222] px-4 py-3 text-[16px] font-medium text-[#0c0a08] transition duration-150 hover:opacity-90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
+               className="w-full rounded-xl bg-[#0c0a08] px-4 py-3.5 text-[15px] font-semibold text-white transition-[transform,opacity] duration-150 hover:opacity-90 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#e4f222] dark:text-[#0c0a08]"
             >
               {t('booking.step2Title')} →
             </button>

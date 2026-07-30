@@ -29,28 +29,24 @@ export default async function BookingCreatePage({
     BUNDLES.find((bundle) => bundle.id === resolvedParams.bundle)?.items ?? [];
 
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 space-y-6 sm:space-y-8">
       {/* Hero header */}
       <section
-        className="relative overflow-hidden rounded-[12px] p-8 sm:p-10 text-white"
+        className="relative overflow-hidden rounded-2xl p-6 text-white shadow-[0_18px_40px_-28px_rgba(12,10,8,0.75)] sm:p-8"
         style={{
           background: 'linear-gradient(165deg, #0c0a08 0%, #0c0a08 30%, #1d2740 60%, #3a548c 80%, #5683d2 92%, #f4f2f0 100%)',
         }}
       >
-        <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.02em] text-[#999ba3]">
+        <div className="flex items-center gap-2 text-xs font-medium text-white/55">
           <Link href="/customer" className="transition hover:text-white">Dashboard</Link>
           <span>/</span>
           <span className="text-white font-medium">New Booking</span>
         </div>
-        <div className="mt-6">
-          <span className="inline-flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.02em] text-[#999ba3]">
-            <span className="inline-block h-[6px] w-[6px] rounded-full bg-[#e4f222]" />
-            BOOKING FORM
-          </span>
-          <h1 className="mt-3 text-[32px] sm:text-[40px] font-normal leading-[1.1] tracking-tight uppercase text-white">
+        <div className="mt-8 max-w-2xl">
+          <h1 className="text-balance text-3xl font-semibold leading-[1.08] tracking-tight text-white sm:text-[40px]">
             Book Your Field
           </h1>
-          <p className="mt-2.5 max-w-lg text-[16px] leading-relaxed text-white/70">
+          <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-white/70 sm:text-[16px]">
             Fill in booking details, make the DP transfer, and upload payment proof.
           </p>
         </div>
