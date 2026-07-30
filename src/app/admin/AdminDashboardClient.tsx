@@ -11,6 +11,7 @@ import { QuickActions } from '@/components/quick-actions';
 import { RevenueChart } from '@/components/revenue-chart';
 import { DashboardStats } from '@/components/stats';
 import { BookingCalendar } from '@/components/BookingCalendar';
+import { AvailabilitySchedule } from './AvailabilitySchedule';
 import {
   Select,
   SelectContent,
@@ -37,6 +38,7 @@ type BookingRow = {
   status: string;
   price: number | string;
   fields: { name: string } | { name: string }[] | null;
+  profiles: { name: string } | { name: string }[] | null;
 };
 
 type PaymentRow = {
@@ -77,7 +79,7 @@ function getFieldIdFromPayment(p: PaymentRow): number | null {
 }
 
 export function AdminDashboardClient({ fields, bookings, payments }: Props) {
-  const { t, locale } = useTranslation();
+  const { locale } = useTranslation();
   const [selectedFieldId, setSelectedFieldId] = useState<string>('all');
 
   const filteredBookings = bookings.filter((b) => {
@@ -127,19 +129,19 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
   });
 
   const kpis = [
-    { label: t('admin.totalBookingCount'), value: String(totalBookingCount), caption: t('dashboard.allBookingHistory'), icon: CalendarCheck },
-    { label: t('admin.pendingVerification'), value: String(pendingCount), caption: t('dashboard.needsAction'), icon: ReceiptText, tone: 'warning' as const },
-    { label: t('admin.confirmedPaid'), value: String(confirmedCount), caption: t('dashboard.allBookingHistory'), icon: CheckCircle2, tone: 'success' as const },
-    { label: t('admin.dpRevenue'), value: money.format(dpRevenue), caption: t('admin.revenueApprovedDesc'), icon: CircleDollarSign, tone: 'info' as const },
+    { label: 'Total bookings', value: String(totalBookingCount), caption: 'All booking history', icon: CalendarCheck },
+    { label: 'Pending review', value: String(pendingCount), caption: 'Needs your attention', icon: ReceiptText, tone: 'warning' as const },
+    { label: 'Confirmed & paid', value: String(confirmedCount), caption: 'Completed booking history', icon: CheckCircle2, tone: 'success' as const },
+    { label: 'Deposit revenue', value: money.format(dpRevenue), caption: 'Approved payments only', icon: CircleDollarSign, tone: 'info' as const },
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <div className="col-span-full flex flex-col gap-4 pb-1 lg:flex-row lg:items-end lg:justify-between">
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+      <div className="col-span-full flex flex-col gap-4 border-b border-[var(--border-subtle)] pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-balance text-2xl font-semibold tracking-tight">{t('admin.dashboardTitle')}</h1>
-          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            {t('admin.dashboardDescription')}
+          <h1 className="text-balance text-3xl font-semibold tracking-tight">Operations dashboard</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Monitor booking demand, available field hours, and payment activity from one workspace.
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -149,7 +151,7 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="all">{t('admin.allFields')}</SelectItem>
+              <SelectItem value="all">All fields</SelectItem>
                 {fields.map((field) => (
                   <SelectItem key={field.id} value={String(field.id)}>{field.name}</SelectItem>
                 ))}
@@ -157,12 +159,21 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
             </SelectContent>
           </Select>
           <Button asChild variant="outline">
-            <Link href="/admin/fields">{t('admin.fields')}</Link>
+            <Link href="/admin/fields">Manage fields</Link>
           </Button>
         </div>
       </div>
 
       <DashboardStats stats={kpis.map((kpi) => ({ label: kpi.label, value: kpi.value, hint: kpi.caption, icon: kpi.icon, tone: kpi.tone }))} />
+
+      <AvailabilitySchedule fields={fields} bookings={bookings.map((booking) => ({
+        field_id: booking.field_id,
+        booking_date: booking.booking_date,
+        start_time: booking.start_time,
+        end_time: booking.end_time,
+        status: booking.status,
+        customerName: Array.isArray(booking.profiles) ? booking.profiles[0]?.name : booking.profiles?.name,
+      }))} />
 
       <div className="col-span-full grid items-start gap-4 xl:grid-cols-2">
         <BookingCalendar
@@ -176,33 +187,33 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
         />
 
         <RevenueChart
-          title={t('admin.last7Days')}
-          description={t('admin.revenueApprovedDesc')}
-          footer={t('admin.revenueFilterHint')}
+          title="Revenue in the last 7 days"
+          description="Approved payments only"
+          footer="Use the field filter to focus this report."
           rows={dailyChart}
           formatValue={(value) => money.format(value)}
-          emptyLabel={t('admin.noRevenueData')}
-          seriesLabel={t('admin.revenueTrend')}
+          emptyLabel="No revenue data yet"
+          seriesLabel="Revenue"
         />
       </div>
 
       <Card className="md:col-span-2 xl:col-span-2">
         <CardHeader>
-          <CardTitle>{t('admin.operationalSummary')}</CardTitle>
-          <CardDescription>{t('admin.operationalSummaryDesc')}</CardDescription>
+          <CardTitle>Operational snapshot</CardTitle>
+          <CardDescription>Current workload and approved revenue at a glance.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-3">
           <div>
-            <p className="text-xs text-muted-foreground">{t('admin.pendingVerification')}</p>
+            <p className="text-xs text-muted-foreground">Pending review</p>
             <p className="mt-1 text-2xl font-semibold tabular-nums">{pendingCount}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">{t('admin.todayRevenue')}</p>
+            <p className="text-xs text-muted-foreground">Today&apos;s revenue</p>
             <p className="mt-1 text-lg font-semibold tabular-nums" suppressHydrationWarning>{money.format(todayRevenue)}</p>
             <p className="mt-1 text-xs text-muted-foreground" suppressHydrationWarning>{todayLabel}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">{t('admin.thisMonthRevenue')}</p>
+            <p className="text-xs text-muted-foreground">This month&apos;s revenue</p>
             <p className="mt-1 text-lg font-semibold tabular-nums" suppressHydrationWarning>{money.format(thisMonthRevenue)}</p>
             <p className="mt-1 text-xs text-muted-foreground" suppressHydrationWarning>{monthLabel}</p>
           </div>
@@ -210,43 +221,43 @@ export function AdminDashboardClient({ fields, bookings, payments }: Props) {
         <CardFooter className="border-t">
           {pendingCount > 0 ? (
             <Button asChild size="sm">
-              <Link href="/admin/bookings">{t('admin.verifyPayments')} <ArrowRight data-icon="inline-end" /></Link>
+              <Link href="/admin/bookings">Review payments <ArrowRight data-icon="inline-end" /></Link>
             </Button>
           ) : (
-            <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><CheckCircle2 /> {t('admin.allClearTitle')}</span>
+            <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><CheckCircle2 /> All payments are verified</span>
           )}
         </CardFooter>
       </Card>
 
       <QuickActions
         className="md:col-span-2 xl:col-span-2"
-        title={t('admin.quickActions')}
-        description={t('admin.quickActionsDesc')}
+        title="Quick actions"
+        description="Jump directly to the next operational task."
         actions={[
-          { title: t('admin.verifyPayments'), description: t('admin.pendingBannerDesc'), href: '/admin/bookings', icon: CalendarCheck },
-          { title: t('admin.fields'), description: t('admin.manageFieldsDesc'), href: '/admin/fields', icon: MapPin },
-          { title: t('admin.addFieldAction'), description: t('admin.addFieldDesc'), href: '/admin/fields/create', icon: Plus },
+          { title: 'Review payments', description: 'Process bookings waiting for verification.', href: '/admin/bookings', icon: CalendarCheck },
+          { title: 'Manage fields', description: 'Update the fields customers can book.', href: '/admin/fields', icon: MapPin },
+          { title: 'Add a field', description: 'Create a new field for online booking.', href: '/admin/fields/create', icon: Plus },
         ]}
       />
 
       <Card className="md:col-span-2 xl:col-span-4">
         <CardHeader>
-          <CardTitle>{t('admin.last6Months')}</CardTitle>
-          <CardDescription>{t('admin.monthlyReportDesc')}</CardDescription>
+          <CardTitle>Revenue by month</CardTitle>
+          <CardDescription>Approved payments recorded in the last six months.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead>{t('admin.monthCol')}</TableHead>
-                <TableHead className="text-right">{t('admin.revenueTrend')}</TableHead>
+                <TableHead>Month</TableHead>
+                <TableHead className="text-right">Revenue</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {last6Months.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={2} className="py-10 text-center text-muted-foreground">
-                    {t('admin.noRevenueData')}
+                    No revenue data yet
                   </TableCell>
                 </TableRow>
               ) : (

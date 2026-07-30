@@ -1,11 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { Edit3, MapPin, Plus, Trash2 } from 'lucide-react';
+import { Edit3, MapPin, MoreHorizontal, Plus, Power, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
 
 import { useTranslation } from '@/lib/i18n';
 import { DataTable } from '@/components/DataTable';
-import { deleteFieldAction } from '@/actions/fields';
+import { deleteFieldAction, setFieldStatusAction } from '@/actions/fields';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type FieldItem = {
   id: number;
@@ -20,6 +29,20 @@ const money = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR
 
 export function AdminFieldsClient({ fields }: { fields: FieldItem[] }) {
   const { t } = useTranslation();
+  const router = useRouter();
+  const [feedback, setFeedback] = useState<string>();
+  const [isPending, startTransition] = useTransition();
+
+  function runAction(action: (formData: FormData) => Promise<{ ok: boolean; message?: string; error?: string }>, fieldId: number, status?: 'active' | 'inactive') {
+    const formData = new FormData();
+    formData.set('fieldId', String(fieldId));
+    if (status) formData.set('status', status);
+    startTransition(async () => {
+      const result = await action(formData);
+      setFeedback(result.message ?? result.error ?? 'Aksi gagal diproses.');
+      if (result.ok) router.refresh();
+    });
+  }
 
   const columns = [
     {
@@ -89,16 +112,28 @@ export function AdminFieldsClient({ fields }: { fields: FieldItem[] }) {
             <Edit3 size={13} />
             {t('common.edit')}
           </Link>
-          <form action={async (formData: FormData) => { await deleteFieldAction(formData); }}>
-            <input type="hidden" name="fieldId" value={row.id} />
-            <button
-              type="submit"
-              className="btn inline-flex items-center gap-1.5 rounded-[4px] border border-red-500/25 bg-transparent px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-500/10 dark:text-red-400"
-            >
-              <Trash2 size={13} />
-              {t('common.delete')}
-            </button>
-          </form>
+          <DropdownMenu>
+            <DropdownMenuTrigger aria-label={`Aksi ${row.name}`} disabled={isPending} className="btn inline-flex items-center rounded-[4px] border border-[var(--border-subtle)] px-2 py-1.5 text-[var(--text-primary)] transition hover:bg-[var(--bg-action-hover)]">
+              <MoreHorizontal size={16} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44 p-1.5">
+              <DropdownMenuItem onSelect={() => runAction(setFieldStatusAction, row.id, row.status === 'active' ? 'inactive' : 'active')} className="gap-2 px-3 py-2 text-sm">
+                <Power />
+                {row.status === 'active' ? 'Nonaktifkan' : 'Aktifkan'}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={() => {
+                  if (window.confirm(`Hapus ${row.name} secara permanen?`)) runAction(deleteFieldAction, row.id);
+                }}
+                className="gap-2 px-3 py-2 text-sm"
+              >
+                <Trash2 />
+                {t('common.delete')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       ),
     },
@@ -126,7 +161,8 @@ export function AdminFieldsClient({ fields }: { fields: FieldItem[] }) {
           <Plus size={16} />
           {t('admin.addField')}
         </Link>
-      </div>
+        </div>
+        {feedback && <p role="status" className="text-sm text-[var(--text-secondary)]">{feedback}</p>}
 
       {/* DataTable */}
       <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4">
