@@ -57,3 +57,5 @@ next-env.d.ts
 reference-previous/
 testsprite_tests/
 opencode.json
+
+testsprite_tests/tmp/config.json
