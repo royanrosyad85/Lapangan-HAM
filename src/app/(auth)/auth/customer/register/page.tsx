@@ -9,10 +9,10 @@ export default function CustomerRegisterPage() {
   const { t } = useTranslation();
 
   return (
-    <main className="grid min-h-screen lg:grid-cols-12 bg-[var(--bg-body)] text-[var(--text-primary)] font-sans transition-colors duration-300">
+    <main className="grid min-h-screen overflow-x-hidden bg-[#f4f2f0] font-sans text-[var(--text-primary)] lg:grid-cols-12">
       {/* Left Panel: Immersive Sports Imagery & Branding */}
       <section
-        className="hidden lg:flex lg:col-span-6 relative flex-col justify-between p-16 text-white overflow-hidden"
+        className="relative hidden overflow-hidden bg-[#0c0a08] p-12 text-white lg:col-span-5 lg:flex lg:flex-col lg:justify-between xl:p-16"
         style={{
           background: 'linear-gradient(165deg, #0c0a08 0%, #0c0a08 22%, #1d2740 52%, #3a548c 74%, #5683d2 88%, #f4f2f0 100%)',
         }}
@@ -24,49 +24,53 @@ export default function CustomerRegisterPage() {
             alt="Soccer kicker action"
             fill
             sizes="50vw"
-            className="object-cover object-center opacity-65"
+            className="object-cover object-center opacity-70"
             priority
             unoptimized
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0c0a08] via-[#0c0a08]/40 to-[#0c0a08]/80 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(12,10,8,0.82),rgba(12,10,8,0.18)_48%,rgba(12,10,8,0.94))]" />
         </div>
 
         {/* Brand Header */}
-        <Link href="/" className="relative z-10 stagger-item hover:opacity-90 transition-opacity">
+        <Link href="/" className="relative z-10 inline-flex w-fit transition-opacity hover:opacity-90">
           <Image
             src="/assets/icon.svg"
             alt="HAM Stadium Logo"
             width={96}
             height={96}
-            className="shrink-0 object-contain h-24 w-24"
+            className="h-16 w-16 shrink-0 object-contain"
           />
         </Link>
 
         {/* Content Statement & Footer */}
-        <div className="relative z-10 space-y-8 stagger-item" style={{ animationDelay: '150ms' }}>
+        <div className="relative z-10 max-w-md space-y-8">
           <div>
-            <h2 className="text-[38px] sm:text-[46px] font-normal leading-[1.08] tracking-tight text-white uppercase max-w-lg">
+            <h2 className="max-w-md text-balance text-4xl font-semibold leading-[1.06] tracking-tight text-white xl:text-5xl">
               {t('auth.panel.title.register')}
             </h2>
-            <p className="mt-4 text-[16px] leading-[1.55] text-white/70 max-w-md">
+            <p className="mt-5 max-w-sm text-[15px] leading-6 text-white/70">
               {t('auth.panel.desc.register')}
             </p>
           </div>
 
-          <p className="text-[12px] text-white/55 font-medium tracking-wider uppercase">
-            HAM Stadium Booking System v1.0
+          <p className="text-xs font-medium text-white/50">
+            HAM Stadium booking
           </p>
         </div>
       </section>
 
       {/* Right Panel: Clean Form Layout */}
-      <section className="flex flex-col justify-center lg:col-span-6 px-6 py-16 sm:px-16 lg:px-24 relative bg-[var(--bg-card)]">
-        <div className="mx-auto w-full max-w-md space-y-8">
-          <div>
-            <h1 className="text-[32px] font-normal leading-[1.15] tracking-tight text-[var(--text-primary)]">
+       <section className="relative flex flex-col justify-center bg-white px-5 py-10 sm:px-10 sm:py-16 lg:col-span-7 lg:px-20 xl:px-28">
+         <div className="mx-auto w-full max-w-md space-y-8">
+           <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-[#4d505d] transition-colors hover:text-[#0c0a08] lg:hidden">
+             <Image src="/assets/icon.svg" alt="HAM Stadium Logo" width={28} height={28} className="size-7" />
+             HAM Stadium
+           </Link>
+           <div>
+             <h1 className="max-w-md text-balance text-3xl font-semibold leading-tight tracking-tight text-[var(--text-primary)] sm:text-4xl">
               {t('auth.registerTitle')}
             </h1>
-            <p className="mt-2 text-[15px] text-[var(--text-secondary)] font-normal">
+             <p className="mt-3 max-w-sm text-[15px] leading-6 text-[var(--text-secondary)]">
               {t('auth.registerSubtitle')}
             </p>
           </div>

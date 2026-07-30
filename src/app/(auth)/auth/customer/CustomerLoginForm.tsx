@@ -15,15 +15,15 @@ export function CustomerLoginForm() {
   );
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form action={formAction} className="space-y-5">
       {state?.error && (
-        <div className="rounded-[4px] bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-500 font-medium">
+        <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-600">
           {state.error}
         </div>
       )}
 
       <div>
-        <label htmlFor="email" className="mb-1.5 block text-[13px] font-medium uppercase tracking-[0.02em] text-[#4d505d] dark:text-[#999ba3]">
+        <label htmlFor="email" className="mb-2 block text-sm font-medium text-[#4d505d] dark:text-[#999ba3]">
           {t('auth.email')}
         </label>
         <div className="relative">
@@ -34,13 +34,13 @@ export function CustomerLoginForm() {
             type="email"
             required
             placeholder={t('auth.enterEmail')}
-            className="w-full rounded-[4px] border border-[#d2cecb] dark:border-slate-800 bg-[#ffffff] dark:bg-slate-900 py-3 pl-10 pr-4 text-[15px] text-[var(--text-primary)] placeholder:text-[#999ba3] transition focus:border-slate-600 focus:ring-0"
+            className="h-12 w-full rounded-xl border border-[#d2cecb] bg-[#ffffff] py-3 pl-10 pr-4 text-[15px] text-[var(--text-primary)] placeholder:text-[#999ba3] transition-[border-color,box-shadow] duration-150 focus:border-[#0c0a08] focus:outline-none focus:ring-4 focus:ring-[#0c0a08]/5 dark:border-slate-800 dark:bg-slate-900"
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="password" className="mb-1.5 block text-[13px] font-medium uppercase tracking-[0.02em] text-[#4d505d] dark:text-[#999ba3]">
+        <label htmlFor="password" className="mb-2 block text-sm font-medium text-[#4d505d] dark:text-[#999ba3]">
           {t('auth.password')}
         </label>
         <div className="relative">
@@ -51,7 +51,7 @@ export function CustomerLoginForm() {
             type="password"
             required
             placeholder={t('auth.enterPassword')}
-            className="w-full rounded-[4px] border border-[#d2cecb] dark:border-slate-800 bg-[#ffffff] dark:bg-slate-900 py-3 pl-10 pr-4 text-[15px] text-[var(--text-primary)] placeholder:text-[#999ba3] transition focus:border-slate-600 focus:ring-0"
+            className="h-12 w-full rounded-xl border border-[#d2cecb] bg-[#ffffff] py-3 pl-10 pr-4 text-[15px] text-[var(--text-primary)] placeholder:text-[#999ba3] transition-[border-color,box-shadow] duration-150 focus:border-[#0c0a08] focus:outline-none focus:ring-4 focus:ring-[#0c0a08]/5 dark:border-slate-800 dark:bg-slate-900"
           />
         </div>
       </div>
@@ -60,12 +60,12 @@ export function CustomerLoginForm() {
         type="submit"
         disabled={isPending}
         id="login-submit"
-        className="w-full rounded-[4px] bg-[#e4f222] px-4 py-3 text-[16px] font-medium text-[#0c0a08] transition-[opacity,transform] duration-150 hover:opacity-90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-2 min-h-12 w-full rounded-xl bg-[#0c0a08] px-4 py-3 text-[15px] font-semibold text-white transition-[transform,opacity] duration-150 hover:opacity-90 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isPending ? t('common.loading') : t('auth.login')}
       </button>
 
-      <div className="border-t border-[#d2cecb] dark:border-slate-800 pt-5 text-center text-[14px] text-[#999ba3] font-normal">
+      <div className="border-t border-[#d2cecb] pt-5 text-center text-sm text-[#999ba3] dark:border-slate-800">
         {t('auth.noAccount')}{' '}
         <Link href="/auth/customer/register" className="font-medium text-[#0c0a08] dark:text-white transition hover:text-[#5683d2] hover:underline">
           {t('auth.registerNow')} →
