@@ -66,14 +66,42 @@ export async function deleteFieldAction(formData: FormData): Promise<FieldAction
   const fieldId = parsePositiveId(formData.get('fieldId'));
   if (!fieldId) return { ok: false, error: 'Lapangan tidak valid.' };
 
-  const { error } = await supabase.from('fields').update({ status: 'inactive' }).eq('id', fieldId);
-  if (error) return { ok: false, error: 'Lapangan gagal dinonaktifkan. Coba lagi.' };
+  const { data: booking, error: bookingError } = await supabase
+    .from('bookings')
+    .select('id')
+    .eq('field_id', fieldId)
+    .maybeSingle();
+
+  if (bookingError) return { ok: false, error: 'Data booking lapangan gagal diperiksa. Coba lagi.' };
+  if (booking) return { ok: false, error: 'Lapangan memiliki riwayat booking dan tidak dapat dihapus. Nonaktifkan lapangan ini sebagai gantinya.' };
+
+  const { error } = await supabase.from('fields').delete().eq('id', fieldId);
+  if (error) return { ok: false, error: 'Lapangan gagal dihapus. Coba lagi.' };
 
   revalidatePath('/admin');
   revalidatePath('/admin/fields');
   revalidatePath('/customer/booking/create');
 
-  return { ok: true, message: 'Lapangan berhasil dinonaktifkan.' };
+  return { ok: true, message: 'Lapangan berhasil dihapus.' };
+}
+
+export async function setFieldStatusAction(formData: FormData): Promise<FieldActionState> {
+  const supabase = await createClient();
+  const admin = await requireAdmin(supabase);
+  if (!admin.ok) return { ok: false, error: admin.error };
+
+  const fieldId = parsePositiveId(formData.get('fieldId'));
+  const status = String(formData.get('status') ?? '');
+  if (!fieldId || !VALID_FIELD_STATUSES.has(status)) return { ok: false, error: 'Lapangan tidak valid.' };
+
+  const { error } = await supabase.from('fields').update({ status }).eq('id', fieldId);
+  if (error) return { ok: false, error: 'Status lapangan gagal diperbarui. Coba lagi.' };
+
+  revalidatePath('/admin');
+  revalidatePath('/admin/fields');
+  revalidatePath('/customer/booking/create');
+
+  return { ok: true, message: status === 'active' ? 'Lapangan berhasil diaktifkan.' : 'Lapangan berhasil dinonaktifkan.' };
 }
 
 function parseFieldPayload(formData: FormData):

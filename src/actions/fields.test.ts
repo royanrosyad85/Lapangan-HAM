@@ -85,12 +85,12 @@ describe('field admin actions', () => {
     ]);
   });
 
-  it('updates and deactivates fields by id only after admin validation', async () => {
+  it('updates field status and permanently deletes fields without bookings', async () => {
     supabaseMock.queues.profilesSelectMaybeSingle.push({ data: { role: 'admin' }, error: null });
     supabaseMock.queues.profilesSelectMaybeSingle.push({ data: { role: 'admin' }, error: null });
 
     await updateFieldAction(validFieldForm('12'));
-    const deactivationResult = await deleteFieldAction(fieldIdForm('12'));
+    const deletionResult = await deleteFieldAction(fieldIdForm('12'));
 
     expect(supabaseMock.calls.updates[0]).toMatchObject({
       table: 'fields',
@@ -102,12 +102,20 @@ describe('field admin actions', () => {
       },
       filters: [['id', 12]],
     });
-    expect(deactivationResult).toEqual({ ok: true, message: 'Lapangan berhasil dinonaktifkan.' });
-    expect(supabaseMock.calls.updates[1]).toMatchObject({
+    expect(deletionResult).toEqual({ ok: true, message: 'Lapangan berhasil dihapus.' });
+    expect(supabaseMock.calls.deletes).toEqual([{
       table: 'fields',
-      payload: { status: 'inactive' },
       filters: [['id', 12]],
-    });
+    }]);
+  });
+
+  it('refuses to delete a field with booking history', async () => {
+    supabaseMock.queues.profilesSelectMaybeSingle.push({ data: { role: 'admin' }, error: null });
+    supabaseMock.queues.generic.unshift({ data: { id: 99 }, error: null });
+
+    const result = await deleteFieldAction(fieldIdForm('12'));
+
+    expect(result).toEqual({ ok: false, error: 'Lapangan memiliki riwayat booking dan tidak dapat dihapus. Nonaktifkan lapangan ini sebagai gantinya.' });
     expect(supabaseMock.calls.deletes).toHaveLength(0);
   });
 });
