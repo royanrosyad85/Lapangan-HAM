@@ -12,6 +12,7 @@ type BookingActionFormProps = {
   bookingId: number;
   label: string;
   pendingLabel: string;
+  description?: string;
   disabled?: boolean;
   tone?: 'approve' | 'danger';
 };
@@ -21,6 +22,7 @@ export function BookingActionForm({
   bookingId,
   label,
   pendingLabel,
+  description,
   disabled = false,
   tone = 'approve',
 }: BookingActionFormProps) {
@@ -34,22 +36,23 @@ export function BookingActionForm({
     : 'bg-[var(--text-primary)] text-[var(--bg-card)] hover:bg-[var(--accent-blue-hover)]';
 
   // Customize titles and messages based on action context
-  let modalTitle = 'Konfirmasi Tindakan';
-  let modalDescription = `Apakah Anda yakin ingin melakukan tindakan ini untuk booking #${bookingId}?`;
+  let modalTitle = 'Confirm action';
+  let modalDescription = `Are you sure you want to apply this action to booking #${bookingId}?`;
   
   if (tone === 'danger') {
-    modalTitle = 'Batalkan Booking';
-    modalDescription = `Apakah Anda yakin ingin membatalkan booking #${bookingId}? Jadwal lapangan akan dibebaskan kembali untuk booking online.`;
+    modalTitle = 'Cancel booking';
+    modalDescription = `Are you sure you want to cancel booking #${bookingId}? The field slot will become available for online bookings again.`;
   } else if (label.toLowerCase().includes('lunas')) {
-    modalTitle = 'Catat Lunas Offline';
-    modalDescription = `Apakah Anda yakin ingin mencatat pelunasan offline untuk booking #${bookingId}? Status booking akan diubah menjadi Lunas.`;
+    modalTitle = 'Record offline payment';
+    modalDescription = `Are you sure you want to record an offline payment for booking #${bookingId}? The booking will be marked as paid.`;
   } else if (label.toLowerCase().includes('dp')) {
-    modalTitle = 'Setujui Pembayaran DP';
-    modalDescription = `Apakah Anda yakin ingin menyetujui pembayaran DP untuk booking #${bookingId}? Status booking akan berubah menjadi DP Disetujui.`;
+    modalTitle = 'Approve deposit payment';
+    modalDescription = `Are you sure you want to approve the deposit for booking #${bookingId}? The booking will move to the next payment stage.`;
   } else if (label.toLowerCase().includes('confirm') || label.toLowerCase().includes('konfirmasi')) {
-    modalTitle = 'Konfirmasi Pelunasan';
-    modalDescription = `Apakah Anda yakin ingin mengonfirmasi pelunasan booking #${bookingId}?`;
+    modalTitle = 'Approve final payment';
+    modalDescription = `Are you sure you want to approve the final payment for booking #${bookingId}?`;
   }
+  if (description) modalDescription = description;
 
   return (
     <>
@@ -93,7 +96,7 @@ export function BookingActionForm({
                 onClick={() => setConfirmOpen(false)}
                 className="rounded-[4px] border border-[var(--border-subtle)] bg-[var(--bg-card)] px-4 py-2 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--bg-action-hover)] cursor-pointer"
               >
-                Batal
+                Cancel
               </button>
               <button
                 type="button"
@@ -107,7 +110,7 @@ export function BookingActionForm({
                     : 'bg-emerald-600 hover:bg-emerald-700'
                 }`}
               >
-                Konfirmasi
+                Confirm
               </button>
             </div>
           </div>
