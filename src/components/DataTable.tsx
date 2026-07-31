@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, type ReactNode, Fragment } from 'react';
+import { useState, useMemo, useEffect, type ReactNode, Fragment } from 'react';
 import { ChevronDown, ChevronUp, Search, ChevronRight } from 'lucide-react';
 
 import { useTranslation } from '@/lib/i18n';
@@ -22,9 +22,13 @@ type DataTableProps<T> = {
   expandableRender?: (row: T) => ReactNode;
   controls?: boolean;
   dateValue?: (row: T) => string;
+  dateRange?: { from: string; to: string };
+  onDateRangeChange?: (range: { from: string; to: string }) => void;
+  onFilteredDataChange?: (data: T[]) => void;
+  copy?: Partial<{ showEntries: string; entries: string; fromDate: string; toDate: string; search: string; noRecords: string; noRecordsHint: string; showing: string; to: string; of: string; previous: string; next: string }>;
 };
 
-export function DataTable<T>({ columns, data, keyExtractor, expandableRender, controls = true, dateValue }: DataTableProps<T>) {
+export function DataTable<T>({ columns, data, keyExtractor, expandableRender, controls = true, dateValue, dateRange, onDateRangeChange, onFilteredDataChange, copy = {} }: DataTableProps<T>) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [perPage, setPerPage] = useState(10);
@@ -32,8 +36,14 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender, co
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortAsc, setSortAsc] = useState(true);
   const [expandedRows, setExpandedRows] = useState<Set<string | number>>(new Set());
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [internalDateRange, setInternalDateRange] = useState({ from: '', to: '' });
+  const { from: fromDate, to: toDate } = dateRange ?? internalDateRange;
+
+  const updateDateRange = (range: { from: string; to: string }) => {
+    if (dateRange) onDateRangeChange?.(range);
+    else setInternalDateRange(range);
+    setPage(1);
+  };
 
   const toggleRow = (id: string | number) => {
     setExpandedRows((prev) => {
@@ -74,6 +84,10 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender, co
     });
   }, [filteredData, sortKey, sortAsc, columns]);
 
+  useEffect(() => {
+    onFilteredDataChange?.(sortedData);
+  }, [onFilteredDataChange, sortedData]);
+
   const totalPages = Math.max(1, Math.ceil(sortedData.length / perPage));
   const currentPage = Math.min(page, totalPages);
   const paginatedData = sortedData.slice((currentPage - 1) * perPage, currentPage * perPage);
@@ -92,23 +106,23 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender, co
       {/* Controls */}
       {controls ? <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-[var(--text-muted)]">{t('common.showEntries')}</span>
+          <span className="text-[var(--text-muted)]">{copy.showEntries ?? t('common.showEntries')}</span>
           <select
-            aria-label={t('common.showEntries')}
+            aria-label={copy.showEntries ?? t('common.showEntries')}
             value={perPage}
             onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}
-            className="h-8 rounded-lg border border-input bg-background px-2 text-sm"
+            className="h-8 rounded-lg border border-input bg-[var(--bg-card)] px-2 text-sm"
           >
             {[5, 10, 25, 50].map((n) => (
               <option key={n} value={n}>{n}</option>
             ))}
           </select>
-          <span className="text-[var(--text-muted)]">{t('common.entries')}</span>
+          <span className="text-[var(--text-muted)]">{copy.entries ?? t('common.entries')}</span>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           {dateValue ? <>
-            <Input type="date" aria-label="From date" value={fromDate} onChange={(e) => { setFromDate(e.target.value); setPage(1); }} className="w-full sm:w-36" />
-            <Input type="date" aria-label="To date" value={toDate} onChange={(e) => { setToDate(e.target.value); setPage(1); }} className="w-full sm:w-36" />
+            <Input type="date" aria-label={copy.fromDate ?? 'From date'} value={fromDate} onChange={(e) => updateDateRange({ from: e.target.value, to: toDate })} className="w-full sm:w-36" />
+            <Input type="date" aria-label={copy.toDate ?? 'To date'} value={toDate} onChange={(e) => updateDateRange({ from: fromDate, to: e.target.value })} className="w-full sm:w-36" />
           </> : null}
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
@@ -116,7 +130,7 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender, co
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder={t('common.search')}
+            placeholder={copy.search ?? t('common.search')}
             className="w-full pl-9 sm:w-72"
           />
         </div>
@@ -127,12 +141,12 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender, co
       <div className="overflow-x-auto rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)]">
         <table className="w-full min-w-[760px] text-sm">
           <thead>
-            <tr className="border-b border-[var(--border-subtle)] bg-[var(--bg-body)]">
+            <tr className="border-b border-[var(--border-subtle)] bg-[var(--bg-card)]">
               {expandableRender && <th className="w-10 px-4 py-3" />}
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="px-4 py-3 text-left text-[11px] font-semibold text-[var(--text-muted)]"
+                  className="px-4 py-3 text-left text-sm font-bold text-[var(--text-primary)]"
                 >
                   {col.sortable ? (
                     <button
@@ -157,9 +171,9 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender, co
               <tr>
                 <td colSpan={columns.length + (expandableRender ? 1 : 0)} className="px-4 py-12 text-center">
                   <div className="mx-auto max-w-xs">
-                    <p className="text-sm font-medium text-[var(--text-primary)]">No records found</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">{copy.noRecords ?? 'No records found'}</p>
                     <p className="mt-1 text-xs text-[var(--text-muted)]">
-                      Try changing the search, filter, or page size.
+                      {copy.noRecordsHint ?? 'Try changing the search, filter, or page size.'}
                     </p>
                   </div>
                 </td>
@@ -211,8 +225,8 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender, co
       {/* Pagination */}
       <div className="flex flex-col gap-3 text-xs text-[var(--text-muted)] sm:flex-row sm:items-center sm:justify-between">
         <span>
-          {t('common.showing')} {sortedData.length === 0 ? 0 : (currentPage - 1) * perPage + 1} {t('common.to')}{' '}
-          {Math.min(currentPage * perPage, sortedData.length)} {t('common.of')} {sortedData.length}
+          {copy.showing ?? t('common.showing')} {sortedData.length === 0 ? 0 : (currentPage - 1) * perPage + 1} {copy.to ?? t('common.to')}{' '}
+          {Math.min(currentPage * perPage, sortedData.length)} {copy.of ?? t('common.of')} {sortedData.length}
         </span>
         <div className="flex gap-1">
           <Button
@@ -222,7 +236,7 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender, co
             disabled={currentPage <= 1}
             onClick={() => setPage(currentPage - 1)}
           >
-            {t('common.previous')}
+            {copy.previous ?? t('common.previous')}
           </Button>
           <Button
             type="button"
@@ -231,7 +245,7 @@ export function DataTable<T>({ columns, data, keyExtractor, expandableRender, co
             disabled={currentPage >= totalPages}
             onClick={() => setPage(currentPage + 1)}
           >
-            {t('common.next')}
+            {copy.next ?? t('common.next')}
           </Button>
         </div>
       </div>
